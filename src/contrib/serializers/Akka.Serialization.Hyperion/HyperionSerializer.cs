@@ -170,7 +170,8 @@ namespace Akka.Serialization
         /// <summary>
         /// Default settings used by <see cref="HyperionSerializer"/> when no config has been specified.
         /// </summary>
-        public static readonly HyperionSerializerSettings Default = Create(HyperionSerializer.DefaultConfiguration());
+        public static readonly HyperionSerializerSettings Default = Create(HyperionSerializer.DefaultConfiguration()
+            .GetConfig("akka.actor.serialization-settings.hyperion"));
 
         /// <summary>
         /// Creates a new instance of <see cref="HyperionSerializerSettings"/> using provided HOCON config.
