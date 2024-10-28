@@ -490,9 +490,6 @@ namespace Akka.Cluster.Sharding
     [Serializable]
     public sealed class GetShardRegionState : IShardRegionQuery, IClusterShardingSerializable
     {
-        /// <summary>
-        /// TBD
-        /// </summary>
         public static readonly GetShardRegionState Instance = new();
 
         private GetShardRegionState()

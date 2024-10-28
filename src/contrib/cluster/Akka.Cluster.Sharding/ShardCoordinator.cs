@@ -1801,7 +1801,7 @@ namespace Akka.Cluster.Sharding
                     }
                     return true;
 
-                case RebalanceTick _:
+                case RebalanceTick:
                     // optimisation: don't rebalance with un-acked shards, will cause unnecessary rebalance
                     if (State.Regions.Count > 0 && _unAckedHostShards.IsEmpty)
                     {
