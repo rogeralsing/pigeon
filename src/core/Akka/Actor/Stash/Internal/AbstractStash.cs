@@ -180,7 +180,7 @@ namespace Akka.Actor.Internal
         {
             // since we want to save the order of messages, but still prepending using AddFirst,
             // we must enumerate envelopes in reversed order
-            foreach (var envelope in envelopes.Distinct().Reverse())
+            foreach (var envelope in envelopes.Reverse())
             {
                 _theStash.AddFirst(envelope);
             }

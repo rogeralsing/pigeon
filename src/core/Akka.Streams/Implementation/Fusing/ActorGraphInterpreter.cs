@@ -767,7 +767,9 @@ namespace Akka.Streams.Implementation.Fusing
             public GraphInterpreterShell Shell { get; }
         }
 
-        private class ShellRegistered
+        // This is the Resume internal API message in JVM, it is used to prevent/short circuit recursive calls
+        // inside a stream. Harmless when dead-lettered.
+        private class ShellRegistered: IDeadLetterSuppression
         {
             public static readonly ShellRegistered Instance = new();
             private ShellRegistered()
