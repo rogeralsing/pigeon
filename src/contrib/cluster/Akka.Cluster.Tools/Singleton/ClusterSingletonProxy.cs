@@ -151,9 +151,7 @@ namespace Akka.Cluster.Tools.Singleton
                 if (m.Member.UniqueAddress.Equals(_cluster.SelfUniqueAddress))
                     Context.Stop(Self);
                 else
-                {
                     Remove(m.Member);
-                }
             });
             Receive<ClusterEvent.IMemberEvent>(_ =>
             {
