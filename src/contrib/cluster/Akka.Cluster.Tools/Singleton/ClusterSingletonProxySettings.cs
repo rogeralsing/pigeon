@@ -59,7 +59,7 @@ namespace Akka.Cluster.Tools.Singleton
                 bufferSize: config.GetInt("buffer-size", 0),
                 considerAppVersion: considerAppVersion, 
                 logSingletonIdentificationFailure: config.GetBoolean("log-singleton-identification-failure", true),
-                singletonIdentificationFailurePeriod: config.GetTimeSpan("singleton-identification-failure-period", TimeSpan.FromMinutes(5)));
+                singletonIdentificationFailurePeriod: config.GetTimeSpan("singleton-identification-failure-period", TimeSpan.FromSeconds(30)));
         }
 
         /// <summary>
@@ -128,7 +128,7 @@ namespace Akka.Cluster.Tools.Singleton
             TimeSpan singletonIdentificationInterval,
             int bufferSize,
             bool considerAppVersion)
-            : this(singletonName, role, singletonIdentificationInterval, bufferSize, considerAppVersion, true, TimeSpan.FromMinutes(5))
+            : this(singletonName, role, singletonIdentificationInterval, bufferSize, considerAppVersion, true, TimeSpan.FromSeconds(30))
         {
         }
 

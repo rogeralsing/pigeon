@@ -154,7 +154,7 @@ namespace Akka.Cluster.Tools.Singleton
 
         [InternalApi]
         internal ClusterSingletonProxySettings ToProxySettings(string singletonName) =>
-            new(singletonName, Role, SingletonIdentificationInterval, BufferSize, ConsiderAppVersion);
+            new(singletonName, Role, SingletonIdentificationInterval, BufferSize, ConsiderAppVersion, true, TimeSpan.FromSeconds(30));
 
         [InternalApi]
         internal bool ShouldRunManager(Cluster cluster) => string.IsNullOrEmpty(Role) || cluster.SelfMember.Roles.Contains(Role);
