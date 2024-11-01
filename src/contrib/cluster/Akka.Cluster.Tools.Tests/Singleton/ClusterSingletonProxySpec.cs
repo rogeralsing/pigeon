@@ -97,29 +97,29 @@ namespace Akka.Cluster.Tools.Tests.Singleton
                             """,
                     output: Output);
 
-                testSystem.Sys.EventStream.Subscribe<ClusterSingletonProxy.IdentifySingletonTimedOut>(testSystem
+                testSystem.IgnoreMessages<ClusterSingletonProxy.IdentifySingletonResult>();
+                testSystem.Sys.EventStream.Subscribe<ClusterSingletonProxy.IdentifySingletonResult>(testSystem
                     .TestActor);
-
-                // Proxy should not try to detect missing singleton if it is not part of a cluster
-                await testSystem.ExpectNoMsgAsync(1.Seconds());
-
                 testSystem.Cluster.Join(seed.Cluster.SelfAddress);
-
+                await AwaitConditionAsync(() =>
+                    Task.FromResult(testSystem.Cluster.State.Members.Count(m => m.Status == MemberStatus.Up) == 2));
+                testSystem.IgnoreNoMessages();
+                
                 // proxy will emit IdentifySingletonTimedOut event locally if it could not find its associated singleton
                 // within the detection period
-                var msg = await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonTimedOut>(3.Seconds());
-                msg.SingletonName.Should().Be("singleton");
-                msg.Role.Should().Be("non-existent");
-                msg.Duration.Should().Be(TimeSpan.FromMilliseconds(500));
+                await AssertTimeoutFired();
 
-                // force seed to leave
-                seed.Cluster.Leave(seed.Cluster.SelfAddress);
-
-                // another event should be fired because the cluster topology changed
-                msg = await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonTimedOut>(3.Seconds());
-                msg.SingletonName.Should().Be("singleton");
-                msg.Role.Should().Be("non-existent");
-                msg.Duration.Should().Be(TimeSpan.FromMilliseconds(500));
+                // proxy will continue to emit IdentifySingletonTimedOut event locally if it could not find its
+                // associated singleton within the detection period
+                await AssertTimeoutFired();
+                
+                return;
+                async Task AssertTimeoutFired()
+                {
+                    var msg = await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonResult>(1.Seconds());
+                    msg.SingletonName.Should().Be("singleton");
+                    msg.Role.Should().Be("non-existent");
+                }
             }
             finally
             {
@@ -173,48 +173,51 @@ namespace Akka.Cluster.Tools.Tests.Singleton
                                 singleton-proxy {
                                     role = seed # only start singletons on seed role
                                     log-singleton-identification-failure = true
-                                    singleton-identification-failure-period = 1s
+                                    singleton-identification-failure-period = 500ms
                                 }
                             }
                             """,
                     startSingleton: false,
                     output: Output);
 
-                testSystem.Sys.EventStream.Subscribe<ClusterSingletonProxy.IdentifySingletonTimedOut>(testSystem.TestActor);
+                testSystem.Sys.EventStream.Subscribe<ClusterSingletonProxy.IdentifySingletonResult>(testSystem.TestActor);
                 testSystem.Cluster.Join(seed.Cluster.SelfAddress);
 
-                // need to make sure that cluster member age is correct. seed node should be oldest.
-                await AwaitConditionAsync(
-                    () => Task.FromResult(Cluster.Get(testSystem.Sys).State.Members.Count(m => m.Status == MemberStatus.Up) == 3),
-                    TimeSpan.FromSeconds(30));
-
+                await AwaitAssertAsync(async () =>
+                {
+                    var result = await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonResult>();
+                    result.Result.Should().Be(ClusterSingletonProxy.IdentifyResult.Success);
+                });
+                
                 testSystem.TestProxy("hello");
 
                 // timeout event should not fire
-                await testSystem.ExpectNoMsgAsync(1.5.Seconds());
+                await testSystem.ExpectNoMsgAsync(1.Seconds());
 
                 // Second seed node left the cluster, no timeout should be fired because singleton is homed in the first seed
                 await seed2.Sys.Terminate();
                 
                 // wait until MemberRemoved is triggered
                 await AwaitConditionAsync(
-                    () => Task.FromResult(Cluster.Get(testSystem.Sys).State.Members.Count(m => m.Status == MemberStatus.Up) == 2),
+                    () => Task.FromResult(Cluster.Get(seed.Sys).State.Members.Count(m => m.Status == MemberStatus.Up) == 2),
                     TimeSpan.FromSeconds(30));
 
                 // timeout event should not fire
-                await testSystem.ExpectNoMsgAsync(1.5.Seconds());
+                await testSystem.ExpectNoMsgAsync(1.Seconds());
 
                 // First seed node which homed the singleton left the cluster
                 await seed.Sys.Terminate();
                 
-                // wait until MemberRemoved is triggered
-                await AwaitConditionAsync(
-                    () => Task.FromResult(Cluster.Get(testSystem.Sys).State.Members.Count(m => m.Status == MemberStatus.Up) == 1),
+                await AwaitAssertAsync(async () =>
+                    {
+                        var result = await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonResult>();
+                        result.Result.Should().Be(ClusterSingletonProxy.IdentifyResult.Timeout);
+                    },
                     TimeSpan.FromSeconds(30));
 
                 // Proxy will emit IdentifySingletonTimedOut event locally because it lost the singleton reference
                 // and no nodes are eligible to home the singleton
-                await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonTimedOut>(3.Seconds());
+                await testSystem.ExpectMsgAsync<ClusterSingletonProxy.IdentifySingletonResult>(3.Seconds());
             }
             finally
             {
