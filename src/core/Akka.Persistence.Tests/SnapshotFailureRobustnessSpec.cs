@@ -292,4 +292,41 @@ akka.persistence.snapshot-store.local-delete-fail.class = ""Akka.Persistence.Tes
                                           m.Cause.Message.Contains("Failed to delete"));
         }
     }
+
+    public class SnapshotIsOptionalSpec : PersistenceSpec
+    {
+        public SnapshotIsOptionalSpec() : base(Configuration("SnapshotIsOptionalSpec", serialization: "off",
+            extraConfig: @"
+akka.persistence.snapshot-store.local.snapshot-is-optional = true
+akka.persistence.snapshot-store.local.class = ""Akka.Persistence.Tests.SnapshotFailureRobustnessSpec+FailingLocalSnapshotStore, Akka.Persistence.Tests""
+"))
+        {
+        }
+        
+        [Fact]
+        public void PersistentActor_with_a_failing_snapshot_with_snapshot_is_optional_true_falls_back_to_events()
+        {
+            var spref = Sys.ActorOf(Props.Create(() => new SnapshotFailureRobustnessSpec.SaveSnapshotTestActor(Name, TestActor)));
+            
+            ExpectMsg<RecoveryCompleted>();
+            spref.Tell(new SnapshotFailureRobustnessSpec.Cmd("boom"));
+            ExpectMsg(1L);
+            
+            Sys.EventStream.Subscribe(TestActor, typeof(Error));
+            try
+            {
+                
+                var lpref = Sys.ActorOf(Props.Create(() => new SnapshotFailureRobustnessSpec.LoadSnapshotTestActor(Name, TestActor)));
+                ExpectMsg<Error>(m => m.Message.ToString().StartsWith("Error loading snapshot"));
+                ExpectMsg("boom-1");
+                ExpectMsg<RecoveryCompleted>();
+                
+            }
+            finally
+            {
+                Sys.EventStream.Unsubscribe(TestActor, typeof(Error));
+            }
+            
+        }
+    }
 }

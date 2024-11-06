@@ -202,6 +202,22 @@ namespace Akka.Persistence
             var configPath = string.IsNullOrEmpty(journalPluginId) ? _defaultJournalPluginId.Value : journalPluginId;
             return PluginHolderFor(configPath, JournalFallbackConfigPath).Config;
         }
+        
+        /// <summary>
+        /// Returns the plugin config identified by <paramref name="snapshotPluginId"/>.
+        /// When empty, looks in `akka.persistence.snapshot-store.plugin` to find configuration entry path.
+        /// When configured, uses <paramref name="snapshotPluginId"/> as absolute path to the journal configuration entry.
+        /// </summary>
+        /// <param name="snapshotPluginId">TBD</param>
+        /// <exception cref="ArgumentException">
+        /// This exception is thrown when either the plugin class name is undefined or the configuration path is missing.
+        /// </exception>
+        /// <returns>TBD</returns>
+        internal Config SnapshotStoreConfigFor(string snapshotPluginId)
+        {
+            var configPath = string.IsNullOrEmpty(snapshotPluginId) ? _defaultSnapshotPluginId.Value : snapshotPluginId;
+            return PluginHolderFor(configPath, SnapshotStoreFallbackConfigPath).Config;
+        }
 
         /// <summary>
         /// Looks up the plugin config by plugin's ActorRef.

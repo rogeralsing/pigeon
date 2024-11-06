@@ -7,6 +7,7 @@
 
 using System;
 using Akka.Actor;
+using Akka.Event;
 using Akka.Persistence.Internal;
 
 namespace Akka.Persistence
@@ -61,7 +62,9 @@ namespace Akka.Persistence
             // protect against snapshot stalling forever because journal overloaded and such
             var timeout = Extension.JournalConfigFor(JournalPluginId).GetTimeSpan("recovery-event-timeout", null, false);
             var timeoutCancelable = Context.System.Scheduler.ScheduleTellOnceCancelable(timeout, Self, new RecoveryTick(true), Self);
-
+            
+            var snapshotIsOptional = Extension.SnapshotStoreConfigFor(SnapshotPluginId).GetBoolean("snapshot-is-optional", false);
+            
             bool RecoveryBehavior(object message)
             {
                 Receive receiveRecover = ReceiveRecover;
@@ -120,15 +123,24 @@ namespace Akka.Persistence
                         }
                         case LoadSnapshotFailed failed:
                             timeoutCancelable.Cancel();
-                            try
+                            if (snapshotIsOptional)
                             {
-                                OnRecoveryFailure(failed.Cause);
+                                Log.Info("Snapshot load error for persistenceId [{0}]. Replaying all events since snapshot-is-optional=true", PersistenceId);
+                                ChangeState(Recovering(RecoveryBehavior, timeout));
+                                Journal.Tell(new ReplayMessages(LastSequenceNr +1L, long.MaxValue, maxReplays, PersistenceId, Self));
                             }
-                            finally
+                            else 
                             {
-                                Context.Stop(Self);
+                                try
+                                {
+                                    OnRecoveryFailure(failed.Cause);
+                                }
+                                finally
+                                {
+                                    Context.Stop(Self);
+                                }
+                                ReturnRecoveryPermit();
                             }
-                            ReturnRecoveryPermit();
                             break;
                         case RecoveryTick { Snapshot: true }:
                             try
