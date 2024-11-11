@@ -11,6 +11,14 @@ This document contains specific upgrade suggestions, warnings, and notices that 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-UPestlIw4k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 <!-- markdownlint-enable MD033 -->
 
+## Upgrading to Akka.NET v1.5.31
+
+Akka.NET v1.5.31 introduces a breaking behavior change to actor `Stash`. In previous behavior, `Stash` will filter out any messages that are identical (see explanation below) when it is prepended with another. It will not do so now, which is the actual intended behavior.
+
+This change will affect `Akka.Persistence` users or users who use the `Stash.Prepend()` method in their code. You will need to add a de-duplication code if your code depends on sending identical messages multiple times to a persistence actor while it is recovering.
+
+Messages are considered as identical if they are sent from the same sender actor and have a payload message that `Equals()` to true against another message. Example payload types would be an object pointing to the same memory address (`ReferenceEquals()` returns true), value types (enum, primitives, structs), and classes that implements the `IEquatable` interface.
+
 ## Upgrading to Akka.NET v1.5.15
 
 Akka.NET v1.5.15 introduces several major changes:
