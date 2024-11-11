@@ -1,4 +1,4 @@
-#### 1.5.31 November 12th 2024 ####
+#### 1.5.31 November 11th 2024 ####
 
 Akka.NET v1.5.31 is a maintenance release that addresses several bugs and added new features.
 
@@ -6,6 +6,7 @@ Akka.NET v1.5.31 is a maintenance release that addresses several bugs and added 
 * [Persistence: Fix RecoveryTick timer leak](https://github.com/akkadotnet/akka.net/pull/7343)
 * [Serialization.Hyperion: Fix serializer config bug](https://github.com/akkadotnet/akka.net/pull/7364)
 * [Sharding: Fix potential `ArgumentException` during shard re-balancing](https://github.com/akkadotnet/akka.net/pull/7367)
+* [Cluster: Fix multiple `Member` with the same `Address` crashing `ClusterDaemon`](https://github.com/akkadotnet/akka.net/pull/7371)
 * [Core: Fix `Stash` filtering out identical `Envelope`s](https://github.com/akkadotnet/akka.net/pull/7375)
 * [Streams: Fix `ShellRegistered` message deadletter log](https://github.com/akkadotnet/akka.net/pull/7376)
 * [Sharding: Make lease release in `Shard.PostStop` be blocking instead of using detached async task](https://github.com/akkadotnet/akka.net/pull/7383)
