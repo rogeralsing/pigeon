@@ -437,26 +437,48 @@ namespace Akka.Cluster.Tools.Singleton
         public ClusterSingletonProvider() { }
         public override Akka.Cluster.Tools.Singleton.ClusterSingleton CreateExtension(Akka.Actor.ExtendedActorSystem system) { }
     }
-    public sealed class ClusterSingletonProxy : Akka.Actor.ReceiveActor
+    public sealed class ClusterSingletonProxy : Akka.Actor.ReceiveActor, Akka.Actor.IWithTimers
     {
         public ClusterSingletonProxy(string singletonManagerPath, Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings settings) { }
+        public Akka.Actor.ITimerScheduler Timers { get; set; }
         public static Akka.Configuration.Config DefaultConfig() { }
         protected override void PostStop() { }
         protected override void PreStart() { }
         public static Akka.Actor.Props Props(string singletonManagerPath, Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings settings) { }
+        public enum IdentifyResult
+        {
+            Success = 0,
+            Timeout = 1,
+        }
+        public sealed class IdentifySingletonResult : Akka.Actor.INoSerializationVerificationNeeded
+        {
+            public IdentifySingletonResult(string singletonName, string role, Akka.Cluster.Tools.Singleton.ClusterSingletonProxy.IdentifyResult result) { }
+            public Akka.Cluster.Tools.Singleton.ClusterSingletonProxy.IdentifyResult Result { get; }
+            public string Role { get; }
+            public string SingletonName { get; }
+            public static Akka.Cluster.Tools.Singleton.ClusterSingletonProxy.IdentifySingletonResult Success(string singletonName, string role) { }
+            public static Akka.Cluster.Tools.Singleton.ClusterSingletonProxy.IdentifySingletonResult Timeout(string singletonName, string role) { }
+        }
     }
     public sealed class ClusterSingletonProxySettings : Akka.Actor.INoSerializationVerificationNeeded
     {
+        [System.ObsoleteAttribute("Use constructor with logSingletonIdentificationFailure and logSingletonIdentifica" +
+            "tionInterval parameter instead. Since v1.5.30")]
         public ClusterSingletonProxySettings(string singletonName, string role, System.TimeSpan singletonIdentificationInterval, int bufferSize, bool considerAppVersion) { }
+        public ClusterSingletonProxySettings(string singletonName, string role, System.TimeSpan singletonIdentificationInterval, int bufferSize, bool considerAppVersion, bool logSingletonIdentificationFailure, System.TimeSpan singletonIdentificationFailurePeriod) { }
         public int BufferSize { get; }
         public bool ConsiderAppVersion { get; }
+        public bool LogSingletonIdentificationFailure { get; }
         public string Role { get; }
+        public System.TimeSpan SingletonIdentificationFailurePeriod { get; }
         public System.TimeSpan SingletonIdentificationInterval { get; }
         public string SingletonName { get; }
         public static Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings Create(Akka.Actor.ActorSystem system) { }
         public static Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings Create(Akka.Configuration.Config config, bool considerAppVersion) { }
         public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithBufferSize(int bufferSize) { }
+        public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithLogSingletonIdentificationFailure(bool logSingletonIdentificationFailure) { }
         public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithRole(string role) { }
+        public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithSingletonIdentificationFailureDuration(System.TimeSpan singletonIdentificationFailurePeriod) { }
         public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithSingletonIdentificationInterval(System.TimeSpan singletonIdentificationInterval) { }
         public Akka.Cluster.Tools.Singleton.ClusterSingletonProxySettings WithSingletonName(string singletonName) { }
     }
