@@ -5,6 +5,7 @@
 [![Discord](https://img.shields.io/discord/974500337396375553?style=flat&logo=discord&label=Join%20Akka.NET%20Discord)](https://discord.com/invite/GSCfPwhbWP)
 [![NuGet](https://img.shields.io/nuget/v/Akka.svg?style=flat-square)](https://www.nuget.org/packages/Akka)
 [![Nuget](https://img.shields.io/nuget/dt/Akka)](https://www.nuget.org/packages/Akka)
+[![Gurubase](https://img.shields.io/badge/Gurubase-Ask%20Akka.NET%20Guru-006BFF)](https://gurubase.io/g/akka-net)
 
 
 **[Akka.NET](https://getakka.net/)** is a .NET port of the popular [Akka project](https://akka.io/) from the Scala / Java community. We are an idiomatic [.NET implementation of the actor model](https://petabridge.com/blog/akkadotnet-what-is-an-actor/) built on top of the .NET Common Language Runtime.
