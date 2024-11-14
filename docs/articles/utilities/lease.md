@@ -1,53 +1,14 @@
 ---
 uid: lease
-title: Lease
+title: Distributed Locks with Akka.Coordination
 ---
-# Lease-Based Access Control System
+# Distributed Locks with Akka.Coordination
 
 ## General Definition
 
-A **lease-based access control system** is a distributed coordination mechanism in which access to a resource is granted by issuing a lease, or token, that represents temporary permission to access a resource. The lease must be acquired by any process intending to interact with the resource. This mechanism often involves the following elements:
+`Akka.Coordination` provides a generalized "distributed lock" implementation called a `Lease` that uses a unique resource identifier inside a backing store (such as Azure Blob Storage or Kubernetes Custom Resource Definitions) to only allow one current "holder" of the lease to perform an action at any given time.
 
-1. **Lease or Token**: A unique identifier or permission granted to a process, typically with an expiration time or conditional constraints, indicating that the process is allowed to use or modify the resource.
-
-2. **Granting Authority**: A central or distributed authority responsible for issuing leases. It ensures that leases are issued according to predefined access policies, and it may limit the number of leases (e.g., exclusive or shared access).
-
-3. **Expiration and Renewal**: Leases are time-bound and may need periodic renewal to maintain access. When a lease expires, the resource becomes accessible to other processes, enabling fair access or reducing resource contention.
-
-4. **Revocation**: Leases may be revoked under certain conditions (e.g., priority overrides, fault tolerance), requiring the process holding the lease to release the resource.
-
-5. **Concurrency Control**: The system often uses leases as a synchronization mechanism to manage concurrent access, prevent race conditions, and enforce mutually exclusive access when necessary.
-
-## Akka.Coordination.Lease
-
-`Akka.Coordination.Lease` is an abstraction in the Akka.NET that provides a way to control access to resources in distributed environments. It enables a process to acquire exclusive access to a resource through a lease. The lease is represented by an abstract class `Lease`, allowing various lease implementations that define specific lease implementations.
-
-### Key Characteristics and Components
-
-* **Lease Name**: A unique identifier for the lease, which specifies the resource to be protected.
-* **Owner Name**: A unique identifier for the entity (usually an actor or node) that is attempting to acquire the lease.
-* **Lease Timeout**: A duration parameter that specifies how long the lease should last. Leases may be renewed or revoked depending on the implementation.
-
-### Operations
-
-The `Akka.Coordination.Lease` API provides the following key operations:
-
-* **`Task<bool> Acquire()`**
-* **`Task<bool> Acquire(Action<Exception> leaseLostCallback)`**
-
-  This asynchronous operation attempts to acquire the lease for the resource. It returns a `Task<bool>`, indicating if the acquisition was successful or not. Parameters may include callback delegate method that will be invoked when a granted lease have been revoked for some reason.
-
-* **`Task<bool> Release()`**
-
-  This asynchronous operation releases the lease, relinquishing the access rights to the resource. It returns a `Task<bool>`, where true indicates successful release. This operation is important for ensuring that resources are freed up for other actors or nodes once a task is completed.
-
-* **`bool CheckLease()`**
-
-  This operation checks whether the lease is still valid, typically returning a Boolean. `CheckLease()` is useful for verifying if a lease has expired or been revoked, ensuring that processes do not operate under an invalid lease.
-
-### Automatic Expiry and Renewal
-
-Some lease implementations in Akka.NET may support automatic expiry or renewal mechanisms. Expiry ensures that leases do not remain active indefinitely, which can prevent resource deadlock or starvation scenarios.
+Akka.NET uses leases internally inside [Split Brain Resolver](../clustering/split-brain-resolver.md), [Cluster.Sharding](../clustering/cluster-sharding.md), and [Cluster Singletons](../clustering/cluster-singleton.md) for this purpose - and in this document you can learn how to call and create leases in your own Akka.NET applications if needed.
 
 ### Officially Supported Lease Implementations
 
@@ -56,7 +17,30 @@ There are currently two officially supported lease implementations:
 * [Akka.Coordination.KubernetesApi](https://github.com/akkadotnet/Akka.Management/tree/dev/src/coordination/kubernetes/Akka.Coordination.KubernetesApi)
 * [Akka.Coordination.Azure](https://github.com/akkadotnet/Akka.Management/tree/dev/src/coordination/azure/Akka.Coordination.Azure)
 
-Both lease implementation supports automatic lease expiry and renewal.
+All lease implementations in Akka.NET supports automatic expiry or renewal mechanisms. Expiry ensures that leases do not remain active indefinitely, which can prevent resource deadlock or starvation scenarios.
+
+### Key Characteristics and Components
+
+* **Lease Name**: A unique identifier for the lease, which specifies the resource to be protected.
+* **Owner Name**: A unique identifier for the entity (usually an actor or node) that is attempting to acquire the lease.
+* **Lease Timeout**: May also be called "Time To Live" or TTL. A duration parameter that specifies how long the lease should last. Leases may be renewed or revoked depending on the implementation.
+
+### Public API
+
+The `Akka.Coordination.Lease` API provides the following methods:
+
+* **`Task<bool> Acquire()`**
+* **`Task<bool> Acquire(Action<Exception> leaseLostCallback)`**
+
+  These asynchronous methods attempts to acquire the lease for the resource. It returns a `Task<bool>`, indicating if the acquisition was successful or not. Parameters may include callback delegate method that will be invoked when a granted lease have been revoked for some reason.
+
+* **`Task<bool> Release()`**
+
+  This asynchronous method releases the lease, relinquishing the access rights to the resource. It returns a `Task<bool>`, where true indicates successful release. This method is important for ensuring that resources are freed up for other actors or nodes once a task is completed.
+
+* **`bool CheckLease()`**
+
+  This method checks whether the lease is still valid, typically returning a Boolean. `CheckLease()` is useful for verifying if a lease has expired or been revoked, ensuring that processes do not operate under an invalid lease.
 
 ## Example
 
