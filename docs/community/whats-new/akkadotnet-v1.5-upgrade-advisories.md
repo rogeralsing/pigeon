@@ -13,11 +13,12 @@ This document contains specific upgrade suggestions, warnings, and notices that 
 
 ## Upgrading to Akka.NET v1.5.32
 
-### Breaking change in `Akka.Cluster.Tools`
+### Breaking Change in `Akka.Cluster.Tools`
 
 The method `ClusterSingleton.Init()` will be removed in future v1.6, if you're using this method, you need to convert it to use `ClusterSingletonManager.Props` and `ClusterSingletonProxy.Props` instead.
 
 In order to preserve backward compatibility within your cluster, if you're using this convention:
+
 ```csharp
 var settings = ClusterSingletonSettings.Create(system);
 var singletonActor = SingletonActor.Create(Counter.Props, "GlobalCounter")
@@ -27,6 +28,7 @@ var proxy = singleton.Init(singletonActor);
 ```
 
 You will need to convert it to:
+
 ```csharp
 var managerSettings = ClusterSingletonManagerSettings.Create(system)
     .WithSingletonName("GlobalCounter");
