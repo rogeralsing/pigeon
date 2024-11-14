@@ -35,7 +35,6 @@ public class LeaseActorDocSpec: TestKit
 
     private const string ResourceId = "protected-resource";
 
-    private TestLease Lease => TestLeaseExt.Get(Sys).GetTestLease(ResourceId);
     private LeaseUsageSettings LeaseSettings => new("test-lease", TimeSpan.FromSeconds(1));
     private string LeaseOwner { get; } = $"leased-actor-{Guid.NewGuid():N}";
     
@@ -46,14 +45,17 @@ public class LeaseActorDocSpec: TestKit
         TestLeaseExt.Get(Sys);
     }
     
+    private TestLease GetLease() => TestLeaseExt.Get(Sys).GetTestLease(ResourceId);
+    
     [Fact]
     public void Actor_with_lease_should_not_be_active_until_lease_is_acquired()
     {
         var testActor = Sys.ActorOf(Props.Create(() => new LeaseActor(LeaseSettings, ResourceId, LeaseOwner)));
         testActor.Tell("Hi", TestActor);
         ExpectNoMsg(200.Milliseconds());
-        
-        Lease.InitialPromise.SetResult(true);
+
+        var lease = GetLease();
+        lease.InitialPromise.SetResult(true);
         ExpectMsg("Hi");
     }
     
@@ -63,9 +65,11 @@ public class LeaseActorDocSpec: TestKit
         var testActor = Sys.ActorOf(Props.Create(() => new LeaseActor(LeaseSettings, ResourceId, LeaseOwner)));
         testActor.Tell("Hi", TestActor);
         ExpectNoMsg(200.Milliseconds());
-        Lease.InitialPromise.SetResult(false);
+        
+        var lease = GetLease();
+        lease.InitialPromise.SetResult(false);
         ExpectNoMsg(200.Milliseconds());
-        Lease.SetNextAcquireResult(Task.FromResult(true));
+        lease.SetNextAcquireResult(Task.FromResult(true));
         ExpectMsg("Hi");
     }
     
@@ -75,9 +79,11 @@ public class LeaseActorDocSpec: TestKit
         var testActor = Sys.ActorOf(Props.Create(() => new LeaseActor(LeaseSettings, ResourceId, LeaseOwner)));
         testActor.Tell("Hi", TestActor);
         ExpectNoMsg(200.Milliseconds());
-        Lease.InitialPromise.SetException(new LeaseFailed("oh no"));
+        
+        var lease = GetLease();
+        lease.InitialPromise.SetException(new LeaseFailed("oh no"));
         ExpectNoMsg(200.Milliseconds());
-        Lease.SetNextAcquireResult(Task.FromResult(true));
+        lease.SetNextAcquireResult(Task.FromResult(true));
         ExpectMsg("Hi");
     }
 
@@ -87,11 +93,13 @@ public class LeaseActorDocSpec: TestKit
         var testActor = Sys.ActorOf(Props.Create(() => new LeaseActor(LeaseSettings, ResourceId, LeaseOwner)));
         testActor.Tell("Hi", TestActor);
         ExpectNoMsg(200.Milliseconds());
-        Lease.InitialPromise.SetResult(true);
+        
+        var lease = GetLease();
+        lease.InitialPromise.SetResult(true);
         ExpectMsg("Hi");
         
         Watch(testActor);
-        Lease.GetCurrentCallback()(new LeaseFailed("oh dear"));
+        lease.GetCurrentCallback()(new LeaseFailed("oh dear"));
         ExpectTerminated(testActor);
     }
 
@@ -101,15 +109,17 @@ public class LeaseActorDocSpec: TestKit
         var testActor = Sys.ActorOf(Props.Create(() => new LeaseActor(LeaseSettings, ResourceId, LeaseOwner)));
         testActor.Tell("Hi", TestActor);
         ExpectNoMsg(200.Milliseconds());
-        Lease.InitialPromise.SetResult(true);
-        Lease.Probe.ExpectMsg(new TestLease.AcquireReq(LeaseOwner));
+        
+        var lease = GetLease();
+        lease.InitialPromise.SetResult(true);
+        lease.Probe.ExpectMsg(new TestLease.AcquireReq(LeaseOwner));
         ExpectMsg("Hi");
 
         Watch(testActor);
-        Lease.GetCurrentCallback()(new LeaseFailed("oh dear"));
+        lease.GetCurrentCallback()(new LeaseFailed("oh dear"));
         ExpectTerminated(testActor);
         
-        Lease.Probe.ExpectMsg(new TestLease.ReleaseReq(LeaseOwner));
+        lease.Probe.ExpectMsg(new TestLease.ReleaseReq(LeaseOwner));
     }
     
 }
