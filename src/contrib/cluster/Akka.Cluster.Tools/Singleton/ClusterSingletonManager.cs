@@ -535,6 +535,7 @@ namespace Akka.Cluster.Tools.Singleton
         /// Returns default HOCON configuration for the cluster singleton.
         /// </summary>
         /// <returns>TBD</returns>
+        [Obsolete("Deprecated and will be removed in v1.6, please use ClusterSingleton.DefaultConfig() instead. Since 1.5.32.")]
         public static Config DefaultConfig()
         {
             return ConfigurationFactory.FromResource<ClusterSingletonManager>(

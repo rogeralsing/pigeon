@@ -11,6 +11,45 @@ This document contains specific upgrade suggestions, warnings, and notices that 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/-UPestlIw4k" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
 <!-- markdownlint-enable MD033 -->
 
+## Upgrading to Akka.NET v1.5.32
+
+### Future Breaking Change in `Akka.Cluster.Tools`
+
+The method `ClusterSingleton.Init()` will be removed in future v1.6, if you're using this method, you need to convert it to use `ClusterSingletonManager.Props` and `ClusterSingletonProxy.Props` instead.
+
+In order to preserve backward compatibility within your cluster, if you're using this convention:
+
+```csharp
+var settings = ClusterSingletonSettings.Create(system);
+var singletonActor = SingletonActor.Create(Counter.Props, "GlobalCounter")
+    .WithStopMessage(MyStopMessage.Instance)
+    .WithSettings(settings);
+var proxy = singleton.Init(singletonActor);
+```
+
+You will need to convert it to:
+
+```csharp
+var managerSettings = ClusterSingletonManagerSettings.Create(system)
+    .WithSingletonName("GlobalCounter");
+system.ActorOf(
+    props: ClusterSingletonManager.Props(
+        singletonProps: Counter.Props,
+        terminationMessage: MyStopMessage.Instance,
+        settings: managerSettings),
+    name: "singletonManagerGlobalCounter");
+
+var proxySettings = ClusterSingletonProxySettings.Create(system)
+    .WithSingletonName("GlobalCounter");
+var proxy = system.ActorOf(
+    props: ClusterSingletonProxy.Props(
+        singletonManagerPath: "/user/singletonManagerGlobalCounter",
+        settings: proxySettings),
+    name: "singletonProxyGlobalCounter");
+```
+
+Note that to preserve backward compatibility between cluster nodes, the singleton manager actor name **MUST** be in the `$"singletonManager{singletonName}"` format.
+
 ## Upgrading to Akka.NET v1.5.31
 
 Akka.NET v1.5.31 introduces a breaking behavior change to actor `Stash`. In previous behavior, `Stash` will filter out any messages that are identical (see explanation below) when it is prepended with another. It will not do so now, which is the actual intended behavior.
