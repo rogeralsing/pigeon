@@ -87,11 +87,19 @@ public class MultiTransportAddressingSpec : AkkaSpec
             Shutdown(secondSystem);
         }
 
+        return;
+
         async Task PingAndVerify(string scheme, int port)
         {
             var selection = Sys.ActorSelection($"akka.{scheme}://MultiTransportSpec@localhost:{port}/user/echo");
-            selection.Tell("ping", TestActor);
-
+            
+            // important: https://github.com/akkadotnet/akka.net/issues/7378 only occurs with IActorRefs
+            var actor = await selection.ResolveOne(TimeSpan.FromSeconds(1));
+            
+            // assert that the remote actor is using the correct transport
+            Assert.Contains(scheme, actor.Path.Address.Protocol);
+            
+            actor.Tell("ping");
             var reply = await ExpectMsgAsync<string>(TimeSpan.FromSeconds(3));
             Assert.Equal("pong", reply);
 
