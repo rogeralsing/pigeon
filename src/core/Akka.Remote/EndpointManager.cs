@@ -549,14 +549,14 @@ namespace Akka.Remote
                 {
                     switch (e)
                     {
-                        case HopelessAssociation h when h.Uid != null:
-                            _log.Error(e.InnerException ?? e, "Association to [{0}] with UID [{1}] is irrecoverably failed. Quarantining address.", h.RemoteAddress, h.Uid);
+                        case HopelessAssociation { Uid: not null }:
+                            _log.Error(e.InnerException ?? e, "Association to [{0}] with UID [{1}] is irrecoverably failed. Quarantining address.", e.RemoteAddress, e.Uid);
                             if (_settings.QuarantineDuration.HasValue && _settings.QuarantineDuration != TimeSpan.MaxValue)
                             {
                                 // have a finite quarantine duration specified in settings.
                                 // If we don't have one specified, don't bother quarantining - it's disabled.
-                                _endpoints.MarkAsQuarantined(h.RemoteAddress, h.Uid.Value, Deadline.Now + _settings.QuarantineDuration);
-                                _eventPublisher.NotifyListeners(new QuarantinedEvent(h.RemoteAddress, h.Uid.Value));
+                                _endpoints.MarkAsQuarantined(e.RemoteAddress, e.Uid.Value, Deadline.Now + _settings.QuarantineDuration);
+                                _eventPublisher.NotifyListeners(new QuarantinedEvent(e.RemoteAddress, e.Uid.Value));
                             }
 
                             return Directive.Stop;
@@ -818,9 +818,6 @@ namespace Akka.Remote
             Receive<Send>(send =>
             {
                 var recipientAddress = send.Recipient.Path.Address;
-                IActorRef CreateAndRegisterWritingEndpoint() => _endpoints.RegisterWritableEndpoint(recipientAddress, 
-                    CreateEndpoint(recipientAddress, send.Recipient.LocalAddressToUse, _transportMapping[send.Recipient.LocalAddressToUse], 
-                        _settings, writing: true, handleOption: null), uid: null);
 
                 // pattern match won't throw a NullReferenceException if one is returned by WritableEndpointWithPolicyFor
                 switch (_endpoints.WritableEndpointWithPolicyFor(recipientAddress))
@@ -841,6 +838,12 @@ namespace Akka.Remote
                         CreateAndRegisterWritingEndpoint().Tell(send);
                         break;
                 }
+
+                return;
+
+                IActorRef CreateAndRegisterWritingEndpoint() => _endpoints.RegisterWritableEndpoint(recipientAddress, 
+                    CreateEndpoint(recipientAddress, send.Recipient.LocalAddressToUse, _transportMapping[send.Recipient.LocalAddressToUse], 
+                        _settings, writing: true, handleOption: null), uid: null);
             });
             Receive<InboundAssociation>(ia => HandleInboundAssociation(ia, false));
             Receive<EndpointWriter.StoppedReading>(endpoint => AcceptPendingReader(endpoint.Writer));
@@ -894,8 +897,7 @@ namespace Akka.Remote
                         {
                             if (result.IsFaulted || result.IsCanceled)
                             {
-                                if (result.Exception != null)
-                                    result.Exception.Handle(_ => true);
+                                result.Exception?.Handle(_ => true);
                                 return false;
                             }
                             return result.Result.All(x => x);

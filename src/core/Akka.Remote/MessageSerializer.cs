@@ -27,7 +27,8 @@ namespace Akka.Remote
         /// <param name="system">The system.</param>
         /// <param name="messageProtocol">The message protocol.</param>
         /// <returns>System.Object.</returns>
-        public static object Deserialize(ExtendedActorSystem system, SerializedMessage messageProtocol)
+        public static object Deserialize(ExtendedActorSystem system,
+            SerializedMessage messageProtocol)
         {
             return system.Serialization.Deserialize(
                 messageProtocol.Message.ToByteArray(),
@@ -39,19 +40,18 @@ namespace Akka.Remote
         /// Serializes the specified message.
         /// </summary>
         /// <param name="system">The system.</param>
-        /// <param name="address">TBD</param>
+        /// <param name="transportInformation">The address for the current transport</param>
         /// <param name="message">The message.</param>
         /// <returns>SerializedMessage.</returns>
-        public static SerializedMessage Serialize(ExtendedActorSystem system, Address address, object message)
+        public static SerializedMessage Serialize(ExtendedActorSystem system, Information transportInformation,
+            object message)
         {
             var serializer = system.Serialization.FindSerializerFor(message);
 
             var oldInfo = Akka.Serialization.Serialization.CurrentTransportInformation;
             try
             {
-                if (oldInfo == null)
-                    Akka.Serialization.Serialization.CurrentTransportInformation =
-                        system.Provider.SerializationInformation;
+                Akka.Serialization.Serialization.CurrentTransportInformation = transportInformation;
 
                 var serializedMsg = new SerializedMessage
                 {
