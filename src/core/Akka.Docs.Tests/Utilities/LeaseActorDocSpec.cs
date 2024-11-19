@@ -45,7 +45,18 @@ public class LeaseActorDocSpec: TestKit
         TestLeaseExt.Get(Sys);
     }
     
-    private TestLease GetLease() => TestLeaseExt.Get(Sys).GetTestLease(ResourceId);
+    private TestLease GetLease()
+    {
+        TestLease? testLease = null;
+        
+        // wait until TestLease is created.
+        AwaitAssert(() =>
+        {
+            testLease = TestLeaseExt.Get(Sys).GetTestLease(ResourceId);
+        }, 3.Seconds(), 100.Milliseconds());
+        
+        return testLease!;
+    } 
     
     [Fact]
     public void Actor_with_lease_should_not_be_active_until_lease_is_acquired()
