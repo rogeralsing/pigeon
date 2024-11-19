@@ -18,9 +18,9 @@ namespace Akka.Remote.Tests.Transport;
 /// <summary>
 /// Added this spec to prove the existence of https://github.com/akkadotnet/akka.net/issues/7378
 /// </summary>
-public class MultiTransportAddressingSpec : AkkaSpec
+public class MultiTransportAddressingSpec : TestKit.Xunit2.TestKit
 {
-    public MultiTransportAddressingSpec(ITestOutputHelper output) : base(GetConfig(Sys1Port1, Sys1Port2), output)
+    public MultiTransportAddressingSpec(ITestOutputHelper output) : base(GetConfig(Sys1Port1, Sys1Port2), "MultiTransportSpec", output)
     {
     }
 
@@ -30,7 +30,7 @@ public class MultiTransportAddressingSpec : AkkaSpec
     public const int Sys2Port1 = 9993;
     public const int Sys2Port2 = 9994;
 
-    private static Config GetConfig(int transportPort1, int transportPort2)
+    private static Config GetConfig(int transportPort1, int transportPort2, string actorSystemName = "MultiTransportSpec")
     {
         return $$"""
                  
@@ -45,7 +45,7 @@ public class MultiTransportAddressingSpec : AkkaSpec
                                      transport-class = "Akka.Remote.Transport.TestTransport, Akka.Remote"
                                      applied-adapters = []
                                      registry-key = aX33k0jWKg
-                                     local-address = "test1://MultiTransportSpec@localhost:{{transportPort1}}"
+                                     local-address = "test1://{{actorSystemName}}@localhost:{{transportPort1}}"
                                      maximum-payload-bytes = 32000b
                                      scheme-identifier = test1
                                  }
@@ -53,7 +53,7 @@ public class MultiTransportAddressingSpec : AkkaSpec
                                      transport-class = "Akka.Remote.Transport.TestTransport, Akka.Remote"
                                      applied-adapters = []
                                      registry-key = aX33k0j11c
-                                     local-address = "test2://MultiTransportSpec@localhost:{{transportPort2}}"
+                                     local-address = "test2://{{actorSystemName}}@localhost:{{transportPort2}}"
                                      maximum-payload-bytes = 32000b
                                      scheme-identifier = test2
                                  }
@@ -67,7 +67,8 @@ public class MultiTransportAddressingSpec : AkkaSpec
     [Fact]
     public async Task Should_Use_Second_Transport_For_Communication()
     {
-        var secondSystem = ActorSystem.Create("MultiTransportSpec", GetConfig(Sys2Port1, Sys2Port2).WithFallback(Sys.Settings.Config));
+        const string secondActorSystemName = "MultiTransportSpec2";
+        var secondSystem = ActorSystem.Create(secondActorSystemName, GetConfig(Sys2Port1, Sys2Port2, secondActorSystemName).WithFallback(Sys.Settings.Config));
         InitializeLogger(secondSystem);
         var assertProbe = CreateTestProbe(secondSystem);
         
@@ -87,11 +88,19 @@ public class MultiTransportAddressingSpec : AkkaSpec
             Shutdown(secondSystem);
         }
 
+        return;
+
         async Task PingAndVerify(string scheme, int port)
         {
-            var selection = Sys.ActorSelection($"akka.{scheme}://MultiTransportSpec@localhost:{port}/user/echo");
-            selection.Tell("ping", TestActor);
-
+            var selection = Sys.ActorSelection($"akka.{scheme}://{secondActorSystemName}@localhost:{port}/user/echo");
+            
+            // important: https://github.com/akkadotnet/akka.net/issues/7378 only occurs with IActorRefs
+            var actor = await selection.ResolveOne(TimeSpan.FromSeconds(1));
+            
+            // assert that the remote actor is using the correct transport
+            Assert.Contains(scheme, actor.Path.Address.Protocol);
+            
+            actor.Tell("ping");
             var reply = await ExpectMsgAsync<string>(TimeSpan.FromSeconds(3));
             Assert.Equal("pong", reply);
 
