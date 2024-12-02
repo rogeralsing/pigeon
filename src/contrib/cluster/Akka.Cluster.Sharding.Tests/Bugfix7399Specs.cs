@@ -23,6 +23,9 @@ using Xunit.Abstractions;
 
 namespace Akka.Cluster.Sharding.Tests;
 
+/// <summary>
+/// Reproduction for https://github.com/akkadotnet/akka.net/issues/7399 
+/// </summary>
 public class Bugfix7399Specs : AkkaSpec
 {
     public static readonly Config SpecConfig = @$"
