@@ -293,6 +293,9 @@ namespace Akka.Actor.Scheduler
                 return null; // message should be ignored
             }
 
+            // N.B. - repeating timers never change their generation, so this check always passes.
+            // This means that, in theory, a repeating timer can queue up the same message many times
+            // in the actor's mailbox (i.e. when actor is busy) and there's no means of de-duplicating it.
             if (timerMsg.Generation == timer.Generation)
             {
                 // valid timer
