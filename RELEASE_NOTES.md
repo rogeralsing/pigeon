@@ -1,3 +1,38 @@
+#### 1.5.32 November 12th 2024 ####
+
+*Placeholder for nightlies*
+
+#### 1.5.31 November 11th 2024 ####
+
+Akka.NET v1.5.31 is a maintenance release that addresses several bugs and added new features.
+
+* [Persistence: Add logging for failed DeleteAsync() that was caused by failed SaveSnapshot()](https://github.com/akkadotnet/akka.net/pull/7360)
+* [Persistence: Fix RecoveryTick timer leak](https://github.com/akkadotnet/akka.net/pull/7343)
+* [Serialization.Hyperion: Fix serializer config bug](https://github.com/akkadotnet/akka.net/pull/7364)
+* [Sharding: Fix potential `ArgumentException` during shard re-balancing](https://github.com/akkadotnet/akka.net/pull/7367)
+* [Cluster: Fix multiple `Member` with the same `Address` crashing `ClusterDaemon`](https://github.com/akkadotnet/akka.net/pull/7371)
+* [Core: Fix `Stash` filtering out identical `Envelope`s](https://github.com/akkadotnet/akka.net/pull/7375)
+* [Streams: Fix `ShellRegistered` message deadletter log](https://github.com/akkadotnet/akka.net/pull/7376)
+* [Sharding: Make lease release in `Shard.PostStop` be blocking instead of using detached async task](https://github.com/akkadotnet/akka.net/pull/7383)
+* [Cluster.Tools: Add missing singleton detection feature for easier infrastructure debugging](https://github.com/akkadotnet/akka.net/pull/7363)
+
+**Upgrade Advisory**
+
+There is a slight change in how actor `Stash` behavior. In previous behavior, `Stash` will filter out any messages that are identical (see explanation below) when it is prepended with another. It will not do so now, which is the actual intended behavior. 
+
+This change will affect `Akka.Persistence` users or users who use the `Stash.Prepend()` method in their code. You will need to add a de-duplication code if your code depends on sending identical messages multiple times to a persistence actor while it is recovering.
+
+Messages are considered as identical if they are sent from the same sender actor and have a payload message that `Equals()` to true against another message. Example payload types would be an object pointing to the same memory address (`ReferenceEquals()` returns true), value types (enum, primitives, structs), and classes that implements the `IEquatable` interface.
+
+To [see the full set of changes in Akka.NET v1.5.31, click here](https://github.com/akkadotnet/akka.net/milestone/114?closed=1).
+
+2 contributors since release 1.5.30
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 9       | 627  | 154  | Gregorius Soedharmo |
+| 4       | 133  | 40   | Aaron Stannard      |
+
 #### 1.5.30 October 1st 2024 ####
 
 Akka.NET v1.5.29 introduced an interface change on the `IScheduler` that unfortunately caused a lot of other plugins to break due to API compatibility issues. v1.5.30 rolls back that change but still fixes the underlying bug in Akka.Persistence's handling and serialziation of timestamps without any interface changes. v1.5.29 will be deprecated from NuGet.

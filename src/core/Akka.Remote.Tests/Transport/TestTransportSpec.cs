@@ -46,7 +46,7 @@ namespace Akka.Remote.Tests.Transport
             Assert.NotNull(result.Item2);
 
             var snapshot = registry.LogSnapshot();
-            Assert.Equal(1, snapshot.Count);
+            Assert.Single(snapshot);
             Assert.IsType<ListenAttempt>(snapshot[0]);
             Assert.Equal(_addressA, ((ListenAttempt)snapshot[0]).BoundAddress);
         }
@@ -201,7 +201,7 @@ namespace Akka.Remote.Tests.Transport
             Assert.NotNull(msg);
 
             exists = registry.ExistsAssociation(_addressA, _addressB);
-            Assert.True(!exists, "Association should no longer exist");
+            Assert.False(exists);
 
             var disassociateAttempt = registry.LogSnapshot().Single(x => x is DisassociateAttempt).AsInstanceOf<DisassociateAttempt>();
             Assert.True(disassociateAttempt.Requestor.Equals(_addressA) && disassociateAttempt.Remote.Equals(_addressB));

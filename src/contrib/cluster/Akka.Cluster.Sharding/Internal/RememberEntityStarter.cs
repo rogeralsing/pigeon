@@ -93,7 +93,7 @@ namespace Akka.Cluster.Sharding.Internal
             Timers.StartPeriodicTimer("retry", ResendUnAcked.Instance, settings.TuningParameters.RetryInterval);
         }
 
-        public ITimerScheduler Timers { get; set; }
+        public ITimerScheduler Timers { get; set; } = null!;
 
         public ILoggingAdapter Log { get; } = Context.GetLogger();
 
