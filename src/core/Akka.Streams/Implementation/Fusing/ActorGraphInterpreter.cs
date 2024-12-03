@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ActorGraphInterpreter.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2023 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2023 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -767,7 +767,9 @@ namespace Akka.Streams.Implementation.Fusing
             public GraphInterpreterShell Shell { get; }
         }
 
-        private class ShellRegistered
+        // This is the Resume internal API message in JVM, it is used to prevent/short circuit recursive calls
+        // inside a stream. Harmless when dead-lettered.
+        private class ShellRegistered: IDeadLetterSuppression
         {
             public static readonly ShellRegistered Instance = new();
             private ShellRegistered()
