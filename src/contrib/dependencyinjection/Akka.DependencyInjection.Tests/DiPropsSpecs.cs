@@ -56,9 +56,8 @@ public class DiPropsSpecs : IAsyncLifetime
         result2.Value.Should().Be("I was injected" + thing);
 
         // Verify that the custom mailbox was used
-        var actorRefWithCell = (ActorRefWithCell)actor;
-        var mailbox = actorRefWithCell.Underlying.AsInstanceOf<ActorCell>().Mailbox;
-        mailbox.Should().BeOfType<CustomMailbox>();
+        var actorRef = (RepointableActorRef)actor;
+        actorRef.MailboxType.GetType().Should().Be(typeof(CustomMailbox));
     }
 
     public async Task InitializeAsync()
