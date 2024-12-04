@@ -1,3 +1,7 @@
+#### 1.5.33 December 4th 2024 ####
+
+*Placeholder for nightlies*
+
 #### 1.5.32 December 4th 2024 ####
 
 Akka.NET v1.5.32 is a maintenance release that addresses several bugs.
