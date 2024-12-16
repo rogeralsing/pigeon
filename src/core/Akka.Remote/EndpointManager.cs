@@ -515,10 +515,11 @@ namespace Akka.Remote
 
         private void HandleStashedInbound(IActorRef endpoint, bool writerIsIdle)
         {
-            var stashed = _stashedInbound.GetOrElse(endpoint, new List<InboundAssociation>());
-            _stashedInbound.Remove(endpoint);
-            foreach (var ia in stashed)
-                HandleInboundAssociation(ia, writerIsIdle);
+            if (_stashedInbound.Remove(endpoint, out var value))
+            {
+                foreach (var ia in value)
+                    HandleInboundAssociation(ia, writerIsIdle);
+            }
         }
 
         private void KeepQuarantinedOr(Address remoteAddress, Action body)
