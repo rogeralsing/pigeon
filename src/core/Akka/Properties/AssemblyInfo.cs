@@ -53,3 +53,4 @@ using System.Runtime.InteropServices;
 [assembly: InternalsVisibleTo("Akka.Persistence.TCK")]
 [assembly: InternalsVisibleTo("Akka.DistributedData")]
 [assembly: InternalsVisibleTo("Akka.DependencyInjection")]
+[assembly: InternalsVisibleTo("Akka.DependencyInjection.Tests")]

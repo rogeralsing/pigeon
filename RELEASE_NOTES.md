@@ -1,6 +1,24 @@
-#### 1.5.32 November 12th 2024 ####
+#### 1.5.33 December 4th 2024 ####
 
 *Placeholder for nightlies*
+
+#### 1.5.32 December 4th 2024 ####
+
+Akka.NET v1.5.32 is a maintenance release that addresses several bugs.
+
+* [Cluster.Tools: Deprecate ClusterSingleton.Init() method](https://github.com/akkadotnet/akka.net/pull/7387)
+* [Remote: Ensure RemoteActorRef are serialized correctly when using multiple transports](https://github.com/akkadotnet/akka.net/pull/7393)
+* [Sharding: Harden event-sourced RememberEntities infrastructure against transient persistence failures](https://github.com/akkadotnet/akka.net/pull/7401)
+
+To [see the full set of changes in Akka.NET v1.5.32, click here](https://github.com/akkadotnet/akka.net/milestone/115?closed=1).
+
+3 contributors since release 1.5.31
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 8       | 750  | 350  | Aaron Stannard      |
+| 5       | 505  | 15   | Gregorius Soedharmo |
+| 1       | 2    | 2    | Ran Trifon          |
 
 #### 1.5.31 November 11th 2024 ####
 
