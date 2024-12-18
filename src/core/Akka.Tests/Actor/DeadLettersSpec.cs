@@ -46,5 +46,24 @@ namespace Akka.Tests
             var msg = await ExpectMsgAsync<SuppressedDeadLetter>();
             msg.Message.ToString()!.Contains("SuppressedMessage").ShouldBeTrue();
         }
+        
+        [Fact]
+        public async Task ShouldLogNormalActorSelectionWrappedMessages()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
+            var selection = Sys.ActorSelection("/user/foobar");
+            selection.Tell(new WrappedClass("chocolate-beans"));
+            await ExpectMsgAsync<DeadLetter>();
+        }
+        
+        [Fact]
+        public async Task ShouldNotLogActorSelectionWrappedMessagesWithDeadLetterSuppression()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(AllDeadLetters));
+            var selection = Sys.ActorSelection("/user/foobar");
+            selection.Tell(new WrappedClass(new SuppressedMessage()));
+            var msg = await ExpectMsgAsync<SuppressedDeadLetter>();
+            msg.Message.ToString()!.Contains("SuppressedMessage").ShouldBeTrue();
+        }
     }
 }
