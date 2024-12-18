@@ -109,6 +109,21 @@ namespace Akka.Event
             if (sender == null) throw new ArgumentNullException(nameof(sender), "SuppressedDeadLetter sender may not be null");
             if (recipient == null) throw new ArgumentNullException(nameof(recipient), "SuppressedDeadLetter recipient may not be null");
         }
+        
+        /// <summary>
+        /// Initializes a new instance of the <see cref="SuppressedDeadLetter"/> class.
+        /// </summary>
+        /// <param name="message">The original message that could not be delivered.</param>
+        /// <param name="sender">The actor that sent the message.</param>
+        /// <param name="recipient">The actor that was to receive the message.</param>
+        /// <exception cref="ArgumentNullException">
+        /// This exception is thrown when either the sender or the recipient is undefined.
+        /// </exception>
+        public SuppressedDeadLetter(object message, IActorRef sender, IActorRef recipient) : base(message, sender, recipient)
+        {
+            if (sender == null) throw new ArgumentNullException(nameof(sender), "SuppressedDeadLetter sender may not be null");
+            if (recipient == null) throw new ArgumentNullException(nameof(recipient), "SuppressedDeadLetter recipient may not be null");
+        }
     }
 
     /// <summary>
