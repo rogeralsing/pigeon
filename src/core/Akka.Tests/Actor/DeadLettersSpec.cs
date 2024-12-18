@@ -5,6 +5,7 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
+using System;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
@@ -22,6 +23,29 @@ namespace Akka.Tests
             Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
             Sys.DeadLetters.Tell("foobar");
             await ExpectMsgAsync<DeadLetter>(deadLetter=>deadLetter.Message.Equals("foobar"));
+        }
+
+        private sealed record WrappedClass(object Message) : IWrappedMessage;
+        
+        private sealed class SuppressedMessage : IDeadLetterSuppression
+        {
+            
+        }
+
+        [Fact]
+        public async Task ShouldLogNormalWrappedMessages()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
+            Sys.DeadLetters.Tell(new WrappedClass("chocolate-beans"));
+            await ExpectMsgAsync<DeadLetter>(deadLetter=>deadLetter.Message.ToString()!.Contains("chocolate-beans"));
+        }
+        
+        [Fact]
+        public async Task ShouldNotLogWrappedMessagesWithDeadLetterSuppression()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
+            Sys.DeadLetters.Tell(new WrappedClass(new SuppressedMessage()));
+            await ExpectNoMsgAsync(TimeSpan.FromMilliseconds(50));
         }
     }
 }
