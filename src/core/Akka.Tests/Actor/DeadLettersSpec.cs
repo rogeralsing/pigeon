@@ -13,7 +13,6 @@ using Xunit;
 
 namespace Akka.Tests
 {
-    
     public class DeadLettersSpec : AkkaSpec
     {
         [Fact]
@@ -23,6 +22,33 @@ namespace Akka.Tests
             Sys.DeadLetters.Tell("foobar");
             await ExpectMsgAsync<DeadLetter>(deadLetter=>deadLetter.Message.Equals("foobar"));
         }
+
+        private sealed record WrappedClass(object Message) : IWrappedMessage;
+        
+        private sealed class SuppressedMessage : IDeadLetterSuppression
+        {
+            
+        }
+
+        [Fact]
+        public async Task ShouldLogNormalWrappedMessages()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
+            Sys.DeadLetters.Tell(new WrappedClass("chocolate-beans"));
+                
+            // this is just to make the test deterministic
+            await ExpectMsgAsync<DeadLetter>();
+        }
+        
+        [Fact]
+        public async Task ShouldNotLogWrappedMessagesWithDeadLetterSuppression()
+        {
+            Sys.EventStream.Subscribe(TestActor, typeof(AllDeadLetters));
+            Sys.DeadLetters.Tell(new WrappedClass(new SuppressedMessage()));
+                
+            // this is just to make the test deterministic
+            var msg = await ExpectMsgAsync<SuppressedDeadLetter>();
+            msg.Message.ToString()!.Contains("SuppressedMessage").ShouldBeTrue();
+        }
     }
 }
-
