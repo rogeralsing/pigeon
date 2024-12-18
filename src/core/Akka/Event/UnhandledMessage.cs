@@ -12,7 +12,7 @@ namespace Akka.Event
     /// <summary>
     /// This message is published to the EventStream whenever an Actor receives a message it doesn't understand
     /// </summary>
-    public sealed class UnhandledMessage : AllDeadLetters, IWrappedMessage
+    public sealed class UnhandledMessage : AllDeadLetters
     {
         /// <summary>
         /// Initializes a new instance of the <see cref="UnhandledMessage" /> class.
