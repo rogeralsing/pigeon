@@ -35,8 +35,6 @@ namespace Akka.Tests
         {
             Sys.EventStream.Subscribe(TestActor, typeof(DeadLetter));
             Sys.DeadLetters.Tell(new WrappedClass("chocolate-beans"));
-                
-            // this is just to make the test deterministic
             await ExpectMsgAsync<DeadLetter>();
         }
         
@@ -45,8 +43,6 @@ namespace Akka.Tests
         {
             Sys.EventStream.Subscribe(TestActor, typeof(AllDeadLetters));
             Sys.DeadLetters.Tell(new WrappedClass(new SuppressedMessage()));
-                
-            // this is just to make the test deterministic
             var msg = await ExpectMsgAsync<SuppressedDeadLetter>();
             msg.Message.ToString()!.Contains("SuppressedMessage").ShouldBeTrue();
         }
