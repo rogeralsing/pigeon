@@ -44,11 +44,11 @@ public class WrappedMessagesSpec
         {"chocolate-beans", false}
     };
         
-    // [Theory]
-    // [MemberData(nameof(SuppressedMessages))]
-    // public void ShouldDetectIfWrappedMessageIsSuppressed(object message, bool expected)
-    // {
-    //     var isSuppressed = WrappedMessage.IsDeadLetterSuppressedAnywhere(message);
-    //     isSuppressed.ShouldBe(expected);
-    // }
+    [Theory]
+    [MemberData(nameof(SuppressedMessages))]
+    public void ShouldDetectIfWrappedMessageIsSuppressed(object message, bool shouldBeSuppressed)
+    {
+        var isSuppressed = WrappedMessage.IsDeadLetterSuppressedAnywhere(message);
+        isSuppressed.ShouldBe(shouldBeSuppressed);
+    }
 }

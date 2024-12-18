@@ -197,6 +197,18 @@ namespace Akka.Actor
             }
             return message;
         }
+
+        internal static bool IsDeadLetterSuppressedAnywhere(object message)
+        {
+            var isSuppressed = message is IDeadLetterSuppression;
+            while(!isSuppressed && message is IWrappedMessage wm)
+            {
+                message = wm.Message;
+                isSuppressed = message is IDeadLetterSuppression;
+            }
+            
+            return isSuppressed;
+        }
     }
 
     /// <summary>
