@@ -123,16 +123,16 @@ namespace Akka.Actor
                 return true;
             }
 
-            if (message is IDeadLetterSuppression deadLetterSuppression)
+            if (WrappedMessage.IsDeadLetterSuppressedAnywhere(message))
             {
-                PublishSupressedDeadLetter(deadLetterSuppression, sender);
+                PublishSupressedDeadLetter(message, sender);
                 return true;
             }
 
             return false;
         }
 
-        private void PublishSupressedDeadLetter(IDeadLetterSuppression msg, IActorRef sender)
+        private void PublishSupressedDeadLetter(object msg, IActorRef sender)
         {
             _eventStream.Publish(new SuppressedDeadLetter(msg, sender.IsNobody() ? _provider.DeadLetters : sender, this));
         }
