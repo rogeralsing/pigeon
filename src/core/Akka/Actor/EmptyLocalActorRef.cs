@@ -111,9 +111,9 @@ namespace Akka.Actor
                 }
                 else
                 {
-                    if (actorSelectionMessage.Message is IDeadLetterSuppression selectionDeadLetterSuppression)
+                    if (WrappedMessage.IsDeadLetterSuppressedAnywhere(actorSelectionMessage.Message))
                     {
-                        PublishSupressedDeadLetter(selectionDeadLetterSuppression, sender);
+                        PublishSupressedDeadLetter(actorSelectionMessage.Message, sender);
                     }
                     else
                     {
