@@ -5,8 +5,6 @@
 // </copyright>
 //-----------------------------------------------------------------------
 
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.Event;
@@ -15,6 +13,47 @@ using Xunit;
 
 namespace Akka.Tests
 {
+
+    public class WrappedMessagesSpec
+    {
+        private sealed record WrappedClass(object Message) : IWrappedMessage;
+        
+        private sealed record WrappedSuppressedClass(object Message) : IWrappedMessage, IDeadLetterSuppression;
+        
+        private sealed class SuppressedMessage : IDeadLetterSuppression
+        {
+            
+        }
+        
+        
+        [Fact]
+        public void ShouldUnwrapWrappedMessage()
+        {
+            var message = new WrappedClass("chocolate-beans");
+            var unwrapped = WrappedMessage.Unwrap(message);
+            unwrapped.ShouldBe("chocolate-beans");
+        }
+        
+        public static readonly TheoryData<object, bool> SuppressedMessages = new()
+        {
+            {new SuppressedMessage(), true},
+            {new WrappedClass(new SuppressedMessage()), true},
+            {new WrappedClass(new WrappedClass(new SuppressedMessage())), true},
+            {new WrappedClass(new WrappedClass("chocolate-beans")), false},
+            {new WrappedSuppressedClass("foo"), true},
+            {new WrappedClass(new WrappedSuppressedClass("chocolate-beans")), true},
+            {new WrappedClass("chocolate-beans"), false},
+            {"chocolate-beans", false}
+        };
+        
+        [Theory]
+        [MemberData(nameof(SuppressedMessages))]
+        public void ShouldDetectIfWrappedMessageIsSuppressed(object message, bool expected)
+        {
+            var isSuppressed = WrappedMessage.IsDeadLetterSuppressedAnywhere(message, out _);
+            isSuppressed.ShouldBe(expected);
+        }
+    }
     
     public class DeadLettersSpec : AkkaSpec
     {

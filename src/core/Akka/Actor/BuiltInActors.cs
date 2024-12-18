@@ -197,6 +197,27 @@ namespace Akka.Actor
             }
             return message;
         }
+
+        /// <summary>
+        /// Is this message marked as "suppress dead letters" anywhere in its "wrap stack"
+        /// </summary>
+        internal static bool IsDeadLetterSuppressedAnywhere(object message, out IDeadLetterSuppression? suppressed)
+        {
+            var loopMessage = message;
+            while(loopMessage is not IDeadLetterSuppression && loopMessage is IWrappedMessage wm)
+            {
+                loopMessage = wm.Message;
+            }
+            
+            if (loopMessage is IDeadLetterSuppression suppression)
+            {
+                suppressed = suppression;
+                return true;
+            }
+
+            suppressed = null;
+            return false;
+        }
     }
 
     /// <summary>

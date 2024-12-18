@@ -78,13 +78,15 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Performs filtering on special messages that need different DeadLetter treatment.
         /// </summary>
-        /// <param name="message">TBD</param>
-        /// <param name="sender">TBD</param>
-        /// <returns>TBD</returns>
-        protected virtual bool SpecialHandle(object message, IActorRef sender)
+        /// <param name="possiblyWrapped">The raw message payload.</param>
+        /// <param name="sender">The sender.</param>
+        /// <returns><c>true</c> if this method handled the message.</returns>
+        protected virtual bool SpecialHandle(object possiblyWrapped, IActorRef sender)
         {
+            var message = WrappedMessage.Unwrap(possiblyWrapped);
+            
             if (message is Watch watch)
             {
                 if (watch.Watchee.Equals(this) && !watch.Watcher.Equals(this))
@@ -123,9 +125,9 @@ namespace Akka.Actor
                 return true;
             }
 
-            if (message is IDeadLetterSuppression deadLetterSuppression)
+            if (WrappedMessage.IsDeadLetterSuppressedAnywhere(possiblyWrapped, out var suppressed))
             {
-                PublishSupressedDeadLetter(deadLetterSuppression, sender);
+                PublishSupressedDeadLetter(suppressed, sender);
                 return true;
             }
 
