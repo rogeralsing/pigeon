@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using Akka.Actor;
 using Akka.Actor.Internal;
 using Akka.Util;
@@ -21,7 +22,15 @@ namespace Akka.TestKit
         
         protected override Directive Handle(IActorRef child, Exception exception)
         {
-            throw new NotImplementedException();
+            var childDelegate = Delegates[child];
+            var handleMethod = typeof(SupervisorStrategy).GetMethod(
+                name: "Handle", 
+                bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic, 
+                binder: Type.DefaultBinder,
+                types: new[] {typeof(IActorRef), typeof(Exception)}, 
+                modifiers: null);
+            var result = (Directive) handleMethod.Invoke(childDelegate, new object[]{ child, exception });
+            return result;
         }
         
         public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats,
