@@ -1984,18 +1984,22 @@ namespace Akka.Streams.Dsl
         /// </para>
         /// Cancels when downstream cancels
         /// </summary>
-        /// <typeparam name="TOut">TBD</typeparam>
-        /// <typeparam name="TMat">TBD</typeparam>
-        /// <param name="flow">TBD</param>
-        /// <param name="name">TBD</param>
-        /// <param name="extract">TBD</param>
-        /// <param name="log">TBD</param>
-        /// <returns>TBD</returns>
-        public static Source<TOut, TMat> Log<TOut, TMat>(this Source<TOut, TMat> flow, string name, Func<TOut, object> extract = null, ILoggingAdapter log = null)
+        /// <typeparam name="TOut">The output type</typeparam>
+        /// <typeparam name="TMat">The materialized type</typeparam>
+        /// <param name="flow">The underlying graph</param>
+        /// <param name="name">The name of the <see cref="LogSource"/></param>
+        /// <param name="extract">Optional. Extract the content that will be captured by the logger</param>
+        /// <param name="log">Optional. Use an external logging adapter</param>
+        /// <param name="logLevel">Optional. The log level being logged. Defaults to <see cref="LogLevel.DebugLevel"/></param>
+        public static Source<TOut, TMat> Log<TOut, TMat>(
+            this Source<TOut, TMat> flow, 
+            string name, Func<TOut, object> extract = null, 
+            ILoggingAdapter log = null,
+            LogLevel logLevel = LogLevel.DebugLevel)
         {
-            return (Source<TOut, TMat>)InternalFlowOperations.Log(flow, name, extract, log);
+            return (Source<TOut, TMat>)InternalFlowOperations.Log(flow, name, extract, log, logLevel);
         }
-
+               
         /// <summary>
         /// Combine the elements of current flow and the given <see cref="Source{TOut,TMat}"/> into a stream of tuples.
         /// <para>
