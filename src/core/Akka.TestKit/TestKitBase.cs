@@ -173,7 +173,7 @@ namespace Akka.TestKit
             var testActor = CreateTestActor(system, testActorName);
 
             // Wait for the testactor to start
-            WaitUntilTestActorIsReady(testActor);
+            WaitUntilTestActorIsReady(testActor, _testState.TestKitSettings);
 
             if (this is not INoImplicitSender)
             {
@@ -193,9 +193,9 @@ namespace Akka.TestKit
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         // Do not convert this method to async, it is being called inside the constructor.
-        private static void WaitUntilTestActorIsReady(IActorRef testActor)
+        private static void WaitUntilTestActorIsReady(IActorRef testActor, TestKitSettings settings)
         {
-            var deadline = TimeSpan.FromSeconds(5);
+            var deadline = settings.TestKitStartupTimeout;
             var stopwatch = Stopwatch.StartNew();
             var ready = false;
             try
