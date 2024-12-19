@@ -74,9 +74,11 @@ namespace Akka.Actor.Internal
         {
             var currMsg = _actorCell.CurrentMessage;
             var sender = _actorCell.Sender;
-
+            
             if (_actorCell.CurrentEnvelopeId == _currentEnvelopeId)
             {
+                if(currMsg is null)
+                    throw new InvalidOperationException("There is no message to stash right now. Stash() must be called inside an actor's Receive methods.");
                 throw new IllegalActorStateException($"Can't stash the same message {currMsg} more than once");
             }
             _currentEnvelopeId = _actorCell.CurrentEnvelopeId;
