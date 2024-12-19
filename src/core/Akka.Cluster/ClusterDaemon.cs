@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ClusterDaemon.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2023 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2023 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -1628,22 +1628,22 @@ namespace Akka.Cluster
         public void Leaving(Address address)
         {
             // only try to update if the node is available (in the member ring)
-            if (LatestGossip.Members.Any(m => m.Address.Equals(address) && m.Status is MemberStatus.Joining or MemberStatus.WeaklyUp or MemberStatus.Up))
+            foreach(var mem in LatestGossip.Members.Where(m => m.Address.Equals(address)))
             {
-                // mark node as LEAVING
-                var newMembers = LatestGossip.Members.Select(m =>
+                if (mem.Status is MemberStatus.Joining or MemberStatus.WeaklyUp or MemberStatus.Up)
                 {
-                    if (m.Address == address) return m.Copy(status: MemberStatus.Leaving);
-                    return m;
-                }).ToImmutableSortedSet(); // mark node as LEAVING
-                var newGossip = LatestGossip.Copy(members: newMembers);
+                    // mark node as LEAVING
+                    var newMembers = LatestGossip.Members
+                        .Remove(mem).Add(mem.Copy(status: MemberStatus.Leaving));
+                    var newGossip = LatestGossip.Copy(members: newMembers);
+                    
+                    UpdateLatestGossip(newGossip);
 
-                UpdateLatestGossip(newGossip);
-
-                _cluster.LogInfo("Marked address [{0}] as [{1}]", address, MemberStatus.Leaving);
-                PublishMembershipState();
-                // immediate gossip to speed up the leaving process
-                SendGossip();
+                    _cluster.LogInfo("Marked address [{0}] as [{1}]", address, MemberStatus.Leaving);
+                    PublishMembershipState();
+                    // immediate gossip to speed up the leaving process
+                    SendGossip();
+                }
             }
         }
 
@@ -1667,40 +1667,43 @@ namespace Akka.Cluster
             var localGossip = LatestGossip;
             var localMembers = localGossip.Members;
             var localOverview = localGossip.Overview;
-            var localSeen = localOverview.Seen;
             var localReachability = _membershipState.DcReachability;
 
             // check if the node to DOWN is in the 'members' set
-            var member = localMembers.FirstOrDefault(m => m.Address == address);
-            if (member != null && member.Status != MemberStatus.Down)
+            var found = false;
+            foreach (var member in localMembers.Where(m => m.Address == address))
             {
-                if (localReachability.IsReachable(member.UniqueAddress))
-                    _cluster.LogInfo("Marking node [{0}] as [{1}]", member.Address, MemberStatus.Down);
-                else
-                    _cluster.LogInfo("Marking unreachable node [{0}] as [{1}]", member.Address, MemberStatus.Down);
-
-
-                var newGossip = localGossip.MarkAsDown(member); //update gossip
-                UpdateLatestGossip(newGossip);
-
-                PublishMembershipState();
-
-                if (address == _cluster.SelfAddress)
+                found = true;
+                if (member.Status != MemberStatus.Down)
                 {
-                    // spread the word quickly, without waiting for next gossip tick
-                    SendGossipRandom(MaxGossipsBeforeShuttingDownMyself);
+                    if (localReachability.IsReachable(member.UniqueAddress))
+                        _cluster.LogInfo("Marking node [{0}] as [{1}]", member.Address, MemberStatus.Down);
+                    else
+                        _cluster.LogInfo("Marking unreachable node [{0}] as [{1}]", member.Address, MemberStatus.Down);
+
+
+                    var newGossip = localGossip.MarkAsDown(member); //update gossip
+                    UpdateLatestGossip(newGossip);
+
+                    PublishMembershipState();
+
+                    if (address == _cluster.SelfAddress)
+                    {
+                        // spread the word quickly, without waiting for next gossip tick
+                        SendGossipRandom(MaxGossipsBeforeShuttingDownMyself);
+                    }
+                    else
+                    {
+                        // try to gossip immediately to downed node, as a STONITH signal
+                        GossipTo(member.UniqueAddress);
+                    }
                 }
-                else
-                {
-                    // try to gossip immediately to downed node, as a STONITH signal
-                    GossipTo(member.UniqueAddress);
-                }
+               
+                // if the previous statement did not evaluate to true, then this node is already being downed
+                
             }
-            else if (member != null)
-            {
-                // already down
-            }
-            else
+            
+            if (!found)
             {
                 _cluster.LogInfo("Ignoring down of unknown node [{0}]", address);
             }

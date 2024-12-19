@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Endpoint.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2023 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2023 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -1043,6 +1043,7 @@ namespace Akka.Remote
             Inbound = handleOrActive != null;
             _ackDeadline = NewAckDeadline();
             _handle = handleOrActive;
+            _transportInformation = new Information(localAddress, Context.System);
             _remoteMetrics = RemoteMetricsExtension.Create(Context.System.AsInstanceOf<ExtendedActorSystem>());
 
             if (_handle == null)
@@ -1056,6 +1057,7 @@ namespace Akka.Remote
         }
 
         private readonly ILoggingAdapter _log = Context.GetLogger();
+        private readonly Information _transportInformation;
         private readonly int? _refuseUid;
         private readonly AkkaPduCodec _codec;
         private readonly IActorRef _reliableDeliverySupervisor;
@@ -1357,7 +1359,7 @@ namespace Akka.Remote
             {
                 throw new EndpointException("Internal error: No handle was present during serialization of outbound message.");
             }
-            return MessageSerializer.Serialize(_system, _handle.LocalAddress, msg);
+            return MessageSerializer.Serialize(_system, _transportInformation, msg);
         }
 
         private int _writeCount = 0;
