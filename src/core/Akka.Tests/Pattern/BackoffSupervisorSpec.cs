@@ -98,7 +98,7 @@ namespace Akka.Tests.Pattern
             var supervisor = Create(OnStopOptions());
             supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
             var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-            Watch(c1);
+            await WatchAsync(c1);
             c1.Tell(PoisonPill.Instance);
             await ExpectTerminatedAsync(c1);
             await AwaitAssertAsync(async() =>
@@ -125,21 +125,6 @@ namespace Akka.Tests.Pattern
         [Fact]
         public async Task BackoffSupervisor_must_support_custom_supervision_strategy()
         {
-            Func<IActorRef, Task> assertCustomStrategy = async supervisor =>
-            {
-                supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
-                var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                Watch(c1);
-                c1.Tell("boom");
-                await ExpectTerminatedAsync(c1);
-                await AwaitAssertAsync(async () =>
-                {
-                    supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
-                    // new instance
-                    (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref.Should().NotBeSameAs(c1);
-                });
-            };
-
             // TODO: use FilterException
             await EventFilter.Exception<TestException>().ExpectAsync(2, async () =>
             {
@@ -163,9 +148,25 @@ namespace Akka.Tests.Pattern
                     return Directive.Escalate;
                 });
 
-                await assertCustomStrategy(Create(OnStopOptions().WithSupervisorStrategy(stoppingStrategy)));
-                await assertCustomStrategy(Create(OnFailureOptions().WithSupervisorStrategy(restartingStrategy)));
+                await AssertCustomStrategy(Create(OnStopOptions().WithSupervisorStrategy(stoppingStrategy)));
+                await AssertCustomStrategy(Create(OnFailureOptions().WithSupervisorStrategy(restartingStrategy)));
             });
+            return;
+
+            async Task AssertCustomStrategy(IActorRef supervisor)
+            {
+                supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
+                var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
+                await WatchAsync(c1);
+                c1.Tell("boom");
+                await ExpectTerminatedAsync(c1);
+                await AwaitAssertAsync(async () =>
+                {
+                    supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
+                    // new instance
+                    (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref.Should().NotBeSameAs(c1);
+                });
+            }
         }
 
         [Fact]
@@ -177,7 +178,7 @@ namespace Akka.Tests.Pattern
                 var supervisor = Create(OnStopOptions().WithDefaultStoppingStrategy().WithManualReset());
                 supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
                 var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                Watch(c1);
+                await WatchAsync(c1);
                 supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
                 (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
 
@@ -279,7 +280,7 @@ namespace Akka.Tests.Pattern
                 supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
 
                 var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                Watch(c1);
+                await WatchAsync(c1);
                 supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
                 (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
 
@@ -306,7 +307,7 @@ namespace Akka.Tests.Pattern
                 supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
 
                 var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                Watch(c1);
+                await WatchAsync(c1);
                 supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
                 (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
 
@@ -365,14 +366,14 @@ namespace Akka.Tests.Pattern
                 return (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
             }
 
-            Watch(supervisor);
+            await WatchAsync(supervisor);
 
             supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
             (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
 
             supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
             var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-            Watch(c1);
+            await WatchAsync(c1);
             c1.Tell(PoisonPill.Instance);
             await ExpectTerminatedAsync(c1);
 
@@ -382,7 +383,7 @@ namespace Akka.Tests.Pattern
             // This code looks suspicious, this might be the cause of the raciness
             var c2 = await WaitForChild();
             await AwaitAssertAsync(() => c2.ShouldNotBe(c1));
-            Watch(c2);
+            await WatchAsync(c2);
             c2.Tell(PoisonPill.Instance);
             await ExpectTerminatedAsync(c2);
 
@@ -391,7 +392,7 @@ namespace Akka.Tests.Pattern
 
             var c3 = await WaitForChild();
             await AwaitAssertAsync(() => c3.ShouldNotBe(c2));
-            Watch(c3);
+            await WatchAsync(c3);
             c3.Tell(PoisonPill.Instance);
             await ExpectTerminatedAsync(c3);
             await ExpectTerminatedAsync(supervisor);
@@ -417,14 +418,14 @@ namespace Akka.Tests.Pattern
                     return (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
                 }
 
-                Watch(supervisor);
+                await WatchAsync(supervisor);
 
                 supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
                 (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
 
                 supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
                 var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                Watch(c1);
+                await WatchAsync(c1);
                 c1.Tell("boom");
                 await ExpectTerminatedAsync(c1);
 
@@ -434,7 +435,7 @@ namespace Akka.Tests.Pattern
                 // This code looks suspicious, this might be the cause of the raciness
                 var c2 = await WaitForChild();
                 await AwaitAssertAsync(() => c2.ShouldNotBe(c1));
-                Watch(c2);
+                await WatchAsync(c2);
                 c2.Tell("boom");
                 await ExpectTerminatedAsync(c2);
 
@@ -443,7 +444,7 @@ namespace Akka.Tests.Pattern
 
                 var c3 = await WaitForChild();
                 await AwaitAssertAsync(() => c3.ShouldNotBe(c2));
-                Watch(c3);
+                await WatchAsync(c3);
                 c3.Tell("boom");
                 await ExpectTerminatedAsync(c3);
                 await ExpectTerminatedAsync(supervisor);
@@ -458,8 +459,8 @@ namespace Akka.Tests.Pattern
             supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
             var c1 = (await  ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
             var parentSupervisor = CreateTestProbe();
-            Watch(c1);
-            parentSupervisor.Watch(supervisor);
+            await WatchAsync(c1);
+            await parentSupervisor.WatchAsync(supervisor);
 
             supervisor.Tell(stopMessage);
             await ExpectMsgAsync("stop");
@@ -476,8 +477,8 @@ namespace Akka.Tests.Pattern
             var supervisor = Create(OnStopOptions(maxNrOfRetries: 100).WithFinalStopMessage(message => ReferenceEquals(message, stopMessage)));
             supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
             var c1 = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-            Watch(c1);
-            supervisorWatcher.Watch(supervisor);
+            await WatchAsync(c1);
+            await supervisorWatcher.WatchAsync(supervisor);
 
             c1.Tell(PoisonPill.Instance);
             await ExpectTerminatedAsync(c1);
