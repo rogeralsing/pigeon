@@ -146,6 +146,16 @@ namespace Akka.Streams.Tests.Dsl
         }
 
         [Fact]
+        public void A_Log_on_source_must_allow_configuring_log_levels_via_Method_argument()
+        {
+            Source.Single(42)
+                .Log("flow-6", logLevel: LogLevel.WarningLevel)
+                .RunWith(Sink.Ignore<int>(), Materializer);
+
+            LogProbe.ExpectMsg<Warning>().Message.ToString().Should().Be("[flow-6] Element: 42");
+        }
+
+        [Fact]
         public void A_Log_on_Source_must_follow_supervision_strategy_when_Exception_thrown()
         {
             var ex = new TestException("test");

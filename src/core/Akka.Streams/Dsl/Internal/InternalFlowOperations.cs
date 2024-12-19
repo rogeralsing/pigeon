@@ -2017,17 +2017,17 @@ namespace Akka.Streams.Dsl.Internal
         /// </para>
         /// Cancels when downstream cancels
         /// </summary>
-        /// <typeparam name="T">TBD</typeparam>
-        /// <typeparam name="TMat">TBD</typeparam>
-        /// <param name="flow">TBD</param>
-        /// <param name="name">TBD</param>
-        /// <param name="extract">TBD</param>
-        /// <param name="log">TBD</param>
-        /// <returns>TBD</returns>
+        /// <typeparam name="T">The output type</typeparam>
+        /// <typeparam name="TMat">The materialized type</typeparam>
+        /// <param name="flow">The underlying graph</param>
+        /// <param name="name">The name of the <see cref="LogSource"/></param>
+        /// <param name="extract">Optional. Extract the content that will be captured by the logger</param>
+        /// <param name="log">Optional. Use an external logging adapter</param>
+        /// <param name="logLevel">Optional. The log level being logged. Defaults to <see cref="LogLevel.DebugLevel"/></param>
         public static IFlow<T, TMat> Log<T, TMat>(this IFlow<T, TMat> flow, string name, Func<T, object> extract = null,
-            ILoggingAdapter log = null)
+            ILoggingAdapter log = null, LogLevel logLevel = LogLevel.DebugLevel)
         {
-            return flow.Via(new Fusing.Log<T>(name, extract ?? Identity<T>(), log));
+            return flow.Via(new Fusing.Log<T>(name, extract ?? Identity<T>(), log, logLevel));
         }
 
         /// <summary>
