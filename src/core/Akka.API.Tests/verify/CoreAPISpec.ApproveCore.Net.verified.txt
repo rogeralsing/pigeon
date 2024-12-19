@@ -10,6 +10,7 @@
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.Cluster.Tests.MultiNode")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.Cluster.Tools")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.DependencyInjection")]
+[assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.DependencyInjection.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.DistributedData")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.Docs.Tests")]
 [assembly: System.Runtime.CompilerServices.InternalsVisibleToAttribute("Akka.MultiNodeTestRunner.Shared.Tests")]
@@ -589,6 +590,7 @@ namespace Akka.Actor
         public CoordinatedShutdownExtension() { }
         public override Akka.Actor.CoordinatedShutdown CreateExtension(Akka.Actor.ExtendedActorSystem system) { }
     }
+    [System.ObsoleteAttribute("This class will be removed in Akka.NET v1.6.0 - use the IScheduler instead.")]
     public class DateTimeOffsetNowTimeProvider : Akka.Actor.IDateTimeOffsetNowTimeProvider, Akka.Actor.ITimeProvider
     {
         public System.TimeSpan HighResMonotonicClock { get; }
@@ -1175,12 +1177,16 @@ namespace Akka.Actor
     }
     public interface ITimerScheduler
     {
+        System.Collections.Generic.IReadOnlyCollection<object> ActiveTimers { get; }
         void Cancel(object key);
         void CancelAll();
         bool IsTimerActive(object key);
         void StartPeriodicTimer(object key, object msg, System.TimeSpan interval);
+        void StartPeriodicTimer(object key, object msg, System.TimeSpan interval, Akka.Actor.IActorRef sender);
         void StartPeriodicTimer(object key, object msg, System.TimeSpan initialDelay, System.TimeSpan interval);
+        void StartPeriodicTimer(object key, object msg, System.TimeSpan initialDelay, System.TimeSpan interval, Akka.Actor.IActorRef sender);
         void StartSingleTimer(object key, object msg, System.TimeSpan timeout);
+        void StartSingleTimer(object key, object msg, System.TimeSpan timeout, Akka.Actor.IActorRef sender);
     }
     public interface IUntypedActorContext : Akka.Actor.IActorContext, Akka.Actor.IActorRefFactory, Akka.Actor.ICanWatch
     {
@@ -5218,6 +5224,7 @@ namespace Akka.Serialization
         public void AddSerializer(string name, Akka.Serialization.Serializer serializer) { }
         public object Deserialize(byte[] bytes, int serializerId, System.Type type) { }
         public object Deserialize(byte[] bytes, int serializerId, string manifest) { }
+        public Akka.Actor.IActorRef DeserializeActorRef(string path) { }
         public Akka.Serialization.Serializer FindSerializerFor(object obj, string defaultSerializerName = null) { }
         public Akka.Serialization.Serializer FindSerializerForType(System.Type objectType, string defaultSerializerName = null) { }
         public static Akka.Serialization.Information GetCurrentTransportInformation() { }
