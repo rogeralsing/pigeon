@@ -3000,6 +3000,7 @@ namespace Akka.Streams.Implementation.Fusing
 
             public override void PreStart()
             {
+                _inheritedAttributes.Contains(DefaultLogLevels);
                 _logLevels = _inheritedAttributes.GetAttribute(DefaultLogLevels);
                 if (_stage._adapter != null)
                     _log = _stage._adapter;
