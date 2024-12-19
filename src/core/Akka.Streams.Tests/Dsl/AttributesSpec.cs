@@ -7,6 +7,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Akka.Event;
 using Akka.Streams.Dsl;
 using Akka.Streams.Implementation;
 using Akka.Streams.TestKit;
@@ -42,6 +43,14 @@ namespace Akka.Streams.Tests.Dsl
 
             var complete = await task.ShouldCompleteWithin(3.Seconds());
             complete.GetAttribute<Attributes.Name>().Value.Should().Contain("new-name");
+        }
+
+        [Fact]
+        public void Attributes_Contains_should_not_return_true_if_doesnt_exist()
+        {
+            var attributes = Attributes.CreateName("new-name");
+            var attribute = new Attributes.LogLevels(LogLevel.DebugLevel, LogLevel.DebugLevel, LogLevel.DebugLevel);
+            attributes.Contains(attribute).Should().BeFalse();
         }
 
         [Fact]
