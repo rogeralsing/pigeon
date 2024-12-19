@@ -90,8 +90,7 @@ namespace Akka.Tests.Pattern
             await AwaitConditionAsync(() => t.Status >= TaskStatus.Running); // need to kick off the task before we can check the latch
 #pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
             var epsilon = TimeSpan.FromMilliseconds(500); // need to pad timeouts due to non-determinism of OS scheduler
-            await WithinAsync(TimeSpan.FromMilliseconds(900) + epsilon,
-                () => AwaitConditionAsync(() => breaker.Instance.CurrentFailureCount == 1, Dilated(TimeSpan.FromMilliseconds(100)), TimeSpan.FromMilliseconds(100)));
+            await AwaitConditionAsync(() => breaker.Instance.CurrentFailureCount == 1, TimeSpan.FromMilliseconds(900) + epsilon, TimeSpan.FromMilliseconds(100));
         }
     }
 
