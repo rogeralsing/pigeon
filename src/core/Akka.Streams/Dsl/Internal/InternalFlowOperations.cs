@@ -2027,7 +2027,7 @@ namespace Akka.Streams.Dsl.Internal
         public static IFlow<T, TMat> Log<T, TMat>(this IFlow<T, TMat> flow, string name, Func<T, object> extract = null,
             ILoggingAdapter log = null, LogLevel logLevel = LogLevel.DebugLevel)
         {
-            return flow.Via(new Fusing.Log<T>(name, extract ?? Identity<T>(), log).WithAttributes(Attributes.CreateLogLevels(logLevel, logLevel)));
+            return flow.Via(new Fusing.Log<T>(name, extract ?? Identity<T>(), log, logLevel));
         }
 
         /// <summary>

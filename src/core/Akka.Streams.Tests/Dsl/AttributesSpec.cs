@@ -49,8 +49,8 @@ namespace Akka.Streams.Tests.Dsl
         public void Attributes_Contains_should_not_return_true_if_doesnt_exist()
         {
             var attributes = Attributes.CreateName("new-name");
-            var attribute = new Attributes.LogLevels(LogLevel.DebugLevel, LogLevel.DebugLevel, LogLevel.DebugLevel);
-            attributes.Contains(attribute).Should().BeFalse();
+            attributes.Contains<Attributes.LogLevels>().Should().BeFalse();
+            attributes.Contains<Attributes.Name>().Should().BeTrue();
         }
 
         [Fact]

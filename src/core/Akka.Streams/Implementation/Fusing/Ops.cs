@@ -3000,8 +3000,14 @@ namespace Akka.Streams.Implementation.Fusing
 
             public override void PreStart()
             {
-                _inheritedAttributes.Contains(DefaultLogLevels);
-                _logLevels = _inheritedAttributes.GetAttribute(DefaultLogLevels);
+                if (_inheritedAttributes.Contains<Attributes.LogLevels>())
+                {
+                    _logLevels = _inheritedAttributes.GetAttribute(DefaultLogLevels);
+                }
+                else
+                {
+                    _logLevels = new Attributes.LogLevels(_stage._defaultLogLevel, _stage._defaultLogLevel, LogLevel.ErrorLevel);
+                }
                 if (_stage._adapter != null)
                     _log = _stage._adapter;
                 else
@@ -3018,18 +3024,14 @@ namespace Akka.Streams.Implementation.Fusing
         private readonly string _name;
         private readonly Func<T, object> _extract;
         private readonly ILoggingAdapter _adapter;
+        private readonly LogLevel _defaultLogLevel;
 
-        /// <summary>
-        /// TBD
-        /// </summary>
-        /// <param name="name">TBD</param>
-        /// <param name="extract">TBD</param>
-        /// <param name="adapter">TBD</param>
-        public Log(string name, Func<T, object> extract, ILoggingAdapter adapter)
+        public Log(string name, Func<T, object> extract, ILoggingAdapter adapter, LogLevel defaultLogLevel)
         {
             _name = name;
             _extract = extract;
             _adapter = adapter;
+            _defaultLogLevel = defaultLogLevel;
         }
 
         // TODO more optimisations can be done here - prepare logOnPush function etc
