@@ -404,21 +404,8 @@ namespace Akka.Tests.Pattern
             await EventFilter.Exception<TestException>().ExpectAsync(3, async() =>
             {
                 var supervisor = Create(OnFailureOptions(maxNrOfRetries: 2));
-
-                async Task<IActorRef> WaitForChild()
-                {
-                    await AwaitConditionAsync(async () =>
-                    {
-                        supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
-                        var c = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                        return !c.IsNobody();
-                    }, TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(50));
-
-                    supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
-                    return (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
-                }
-
-                await WatchAsync(supervisor);
+                var supervisorProbe = CreateTestProbe();
+                await supervisorProbe.WatchAsync(supervisor);
 
                 supervisor.Tell(BackoffSupervisor.GetRestartCount.Instance);
                 (await ExpectMsgAsync<BackoffSupervisor.RestartCount>()).Count.Should().Be(0);
@@ -447,7 +434,21 @@ namespace Akka.Tests.Pattern
                 await WatchAsync(c3);
                 c3.Tell("boom");
                 await ExpectTerminatedAsync(c3);
-                await ExpectTerminatedAsync(supervisor);
+                await supervisorProbe.ExpectTerminatedAsync(supervisor);
+                return;
+
+                async Task<IActorRef> WaitForChild()
+                {
+                    await AwaitConditionAsync(async () =>
+                    {
+                        supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
+                        var c = (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
+                        return !c.IsNobody();
+                    }, TimeSpan.FromSeconds(1), TimeSpan.FromMilliseconds(50));
+
+                    supervisor.Tell(BackoffSupervisor.GetCurrentChild.Instance);
+                    return (await ExpectMsgAsync<BackoffSupervisor.CurrentChild>()).Ref;
+                }
             });
         }
 
