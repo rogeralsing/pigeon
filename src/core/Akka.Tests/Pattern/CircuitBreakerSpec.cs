@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.ExceptionServices;
@@ -227,10 +228,10 @@ namespace Akka.Tests.Pattern
         public async Task Must_reset_failure_count_after_success()
         {
             var breaker = MultiFailureCb();
-            _ = breaker.Instance.WithCircuitBreaker(() => Task.Run(SayHi));
-            Enumerable.Range(1, 4).ForEach(_ => breaker.Instance.WithCircuitBreaker(() => Task.Run(ThrowException)));
+            await WaitForTaskToBeScheduled(breaker.Instance.WithCircuitBreaker(() => Task.Run(SayHi)));
+            await WaitForTaskToBeScheduled(Enumerable.Range(1, 4).Select(_ => breaker.Instance.WithCircuitBreaker(() => Task.Run(ThrowException))).ToList());
             await AwaitAssertAsync(() => breaker.Instance.CurrentFailureCount.ShouldBe(4), AwaitTimeout);
-            _ = breaker.Instance.WithCircuitBreaker(() => Task.Run(SayHi));
+            await WaitForTaskToBeScheduled(breaker.Instance.WithCircuitBreaker(() => Task.Run(SayHi)));
             await AwaitAssertAsync(() => breaker.Instance.CurrentFailureCount.ShouldBe(0), AwaitTimeout);
         }
 
@@ -354,6 +355,16 @@ namespace Akka.Tests.Pattern
         public TimeSpan AwaitTimeout => Dilated(TimeSpan.FromSeconds(2));
 
         public bool CheckLatch(CountdownEvent latch) => latch.Wait(AwaitTimeout);
+
+        public Task WaitForTaskToBeScheduled(Task childTask)
+        {
+            return AwaitConditionAsync(() => childTask.Status >= TaskStatus.Running);
+        }
+        
+        public Task WaitForTaskToBeScheduled(IReadOnlyCollection<Task> childTasks)
+        {
+            return AwaitConditionAsync(() => childTasks.All(t => t.Status >= TaskStatus.Running));
+        }
 
         [DebuggerStepThrough]
         public static void ThrowException() => throw new TestException("Test Exception");
