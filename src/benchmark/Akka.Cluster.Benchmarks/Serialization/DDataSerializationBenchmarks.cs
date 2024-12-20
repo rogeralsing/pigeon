@@ -66,7 +66,7 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
         int regionCount)
     {
         var shards = Enumerable.Range(0, shardCount)
-            .Select(i => new KeyValuePair<string, IActorRef>($"shard-{i}", placeholders[i]))
+            .Select(i => new KeyValuePair<string, IActorRef>($"shard-{i}", placeholders[0]))
             .ToImmutableDictionary( );
         
         // evenly allocate shards to regions
