@@ -7,6 +7,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Akka.Actor;
 using Akka.TestKit.TestActors;
 using Akka.Util.Internal;
@@ -89,6 +90,17 @@ namespace Akka.TestKit.Tests.TestActorRefTests
             });
         }
         
+        [Fact]
+        public async Task TestProbe_kill_a_failing_child_if_the_given_supervisor_says_so()
+        {
+            var restarts = new AtomicCounter(0);
+            var probe = CreateTestProbe();
+            var child = await probe.ChildActorOfAsync(Props.Create(() => new FailingActor(restarts)), new FailOnExceptionStrategy());
+            await WatchAsync(child);
+            child.Tell("hello");
+            await ExpectTerminatedAsync(child);
+        }
+        
         class FailingActor : ActorBase
         {
             private AtomicCounter Restarts { get; }
@@ -106,6 +118,14 @@ namespace Akka.TestKit.Tests.TestActorRefTests
             protected override void PostRestart(Exception reason)
             {
                 Restarts.IncrementAndGet();
+            }
+        }
+        
+        private class FailOnExceptionStrategy: OneForOneStrategy
+        {
+            protected override Directive Handle(IActorRef child, Exception exception)
+            {
+                return Directive.Stop;
             }
         }
     }
