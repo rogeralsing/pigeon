@@ -3676,7 +3676,7 @@ namespace Akka.Event
     }
     public sealed class SuppressedDeadLetter : Akka.Event.AllDeadLetters
     {
-        public SuppressedDeadLetter(Akka.Event.IDeadLetterSuppression message, Akka.Actor.IActorRef sender, Akka.Actor.IActorRef recipient) { }
+        public SuppressedDeadLetter(object message, Akka.Actor.IActorRef sender, Akka.Actor.IActorRef recipient) { }
     }
     public class TraceLogger : Akka.Actor.UntypedActor
     {

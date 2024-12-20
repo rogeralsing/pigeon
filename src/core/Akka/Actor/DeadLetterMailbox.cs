@@ -46,9 +46,13 @@ namespace Akka.Actor
         /// <param name="envelope">TBD</param>
         public void Enqueue(IActorRef receiver, Envelope envelope)
         {
-            if (envelope.Message is DeadLetter)
+            if (envelope.Message is AllDeadLetters)
             {
-                // actor subscribing to DeadLetter. Drop it.
+                /*  We're receiving a DeadLetter sent to us by someone else (which is not normal - usually only happens
+                 *  if we were explicitly subscribed to DeadLetters on the EventStream).
+                 *   
+                 *  Have to terminate here in order to prevent a stack overflow.
+                 */ 
                 return;
             }
 
