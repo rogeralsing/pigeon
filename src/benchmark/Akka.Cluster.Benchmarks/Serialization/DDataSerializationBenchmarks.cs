@@ -17,6 +17,7 @@ using Akka.Cluster.Sharding.Serialization.Proto.Msg;
 using Akka.Cluster.Tests;
 using Akka.Configuration;
 using Akka.DistributedData;
+using Akka.DistributedData.Internal;
 using Akka.DistributedData.Serialization;
 using Akka.Util;
 using BenchmarkDotNet.Attributes;
@@ -32,6 +33,7 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
         """).WithFallback(ClusterSharding.DefaultConfig());
     private ExtendedActorSystem _system;
     private ReplicatedDataSerializer _replicatedDataSerializer;
+    private ReplicatorMessageSerializer _replicatorMessageSerializer;
     
     private static readonly Member FakeNode = TestMember.Create(new Address("akka.tcp", "sys", "b", 2552), MemberStatus.Up,
         ImmutableHashSet.Create("r1"), appVersion: AppVersion.Create("1.1.0"));
@@ -48,8 +50,17 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     private readonly LWWRegisterKey<ShardCoordinator.CoordinatorState> _coordinatorStateKey = new("CoordinatorState");
     
     private LWWRegister<ShardCoordinator.CoordinatorState> _coordinatorState;
-    private byte[] _seralizedCoordinatorState;
-    private string _manifest = string.Empty;
+    private byte[] _serializedCoordinatorState;
+    private string _lwwRegisterManifest = string.Empty;
+
+    private DataEnvelope _dataEnvelope;
+    private byte[] _serializedDataEnvelope;
+    private string _dataEnvelopeManifest = string.Empty;
+
+    private Write _dataWrite;
+    private byte[] _serializedDataWrite;
+    private string _dataWriteManifest = string.Empty;
+    
 
     private static ShardCoordinator.CoordinatorState ComputedState(IActorRef placeholder, int shardCount,
         int regionCount)
@@ -78,11 +89,25 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     {
         _system ??= (ExtendedActorSystem)ActorSystem.Create("system", BaseConfig);
         _placeHolder ??= _system.ActorOf(ctx => { });
+        _replicatedDataSerializer = new ReplicatedDataSerializer(_system);
+        _replicatorMessageSerializer = new ReplicatorMessageSerializer(_system);
         _coordinatorState = new LWWRegister<ShardCoordinator.CoordinatorState>(FakeNode.UniqueAddress, 
             ComputedState(_placeHolder, ShardCount, RegionCount));
-        _replicatedDataSerializer = new ReplicatedDataSerializer(_system);
-        _seralizedCoordinatorState = _replicatedDataSerializer.ToBinary(_coordinatorState);
-        _manifest = _replicatedDataSerializer.Manifest(_coordinatorState);
+        
+        // LWWRegister
+        
+        _serializedCoordinatorState = _replicatedDataSerializer.ToBinary(_coordinatorState);
+        _lwwRegisterManifest = _replicatedDataSerializer.Manifest(_coordinatorState);
+        
+        // DataEnvelope
+        _dataEnvelope = new DataEnvelope(_coordinatorState);
+        _serializedDataEnvelope = _replicatorMessageSerializer.ToBinary(_dataEnvelope);
+        _dataEnvelopeManifest = _replicatorMessageSerializer.Manifest(_dataEnvelope);
+        
+        // Write
+        _dataWrite = new Write(_coordinatorStateKey.Id, _dataEnvelope, FakeNode.UniqueAddress);
+        _serializedDataWrite = _replicatorMessageSerializer.ToBinary(_dataWrite);
+        _dataWriteManifest = _replicatorMessageSerializer.Manifest(_dataWrite);
     }
 
     /// <summary>
@@ -97,8 +122,32 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     [Benchmark]
     public object DeserializeCoordinatorState()
     {
-        return _replicatedDataSerializer.FromBinary(_seralizedCoordinatorState, _manifest);
+        return _replicatedDataSerializer.FromBinary(_serializedCoordinatorState, _lwwRegisterManifest);
     } 
+    
+    [Benchmark]
+    public byte[] SerializeDataEnvelope()
+    {
+        return _replicatorMessageSerializer.ToBinary(_dataEnvelope);
+    }
+    
+    [Benchmark]
+    public object DeserializeDataEnvelope()
+    {
+        return _replicatorMessageSerializer.FromBinary(_serializedDataEnvelope, _dataEnvelopeManifest);
+    }
+    
+    [Benchmark]
+    public byte[] SerializeDataWrite()
+    {
+        return _replicatorMessageSerializer.ToBinary(_dataWrite);
+    }
+    
+    [Benchmark]
+    public object DeserializeDataWrite()
+    {
+        return _replicatorMessageSerializer.FromBinary(_serializedDataWrite, _dataWriteManifest);
+    }
     
     [GlobalCleanup]
     public void Cleanup()
