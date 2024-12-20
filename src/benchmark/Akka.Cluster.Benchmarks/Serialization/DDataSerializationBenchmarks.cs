@@ -5,6 +5,7 @@
 //  </copyright>
 // -----------------------------------------------------------------------
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -37,9 +38,9 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     
     [Params(1, 20, 100, 1000)]
     public int ShardCount { get; set; }
-    
-    [Params(1, 20, 100)]
-    public int RegionCount { get; set; }
+
+
+    public int RegionCount => Math.Max(ShardCount / 10, 1);
     
     // Used to represent shards and regions
     private IActorRef _placeHolder;
