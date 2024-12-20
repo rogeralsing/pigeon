@@ -45,7 +45,7 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     public int RegionCount => Math.Max(ShardCount / 10, 1);
     
     // Used to represent shards and regions
-    private IActorRef _placeHolder;
+    private IActorRef[] _placeHolders;
     
     private readonly LWWRegisterKey<ShardCoordinator.CoordinatorState> _coordinatorStateKey = new("CoordinatorState");
     
@@ -62,37 +62,40 @@ public class DDataShardCoordinatorStateSerializationBenchmarks
     private string _dataWriteManifest = string.Empty;
     
 
-    private static ShardCoordinator.CoordinatorState ComputedState(IActorRef placeholder, int shardCount,
+    private static ShardCoordinator.CoordinatorState ComputedState(IActorRef[] placeholders, int shardCount,
         int regionCount)
     {
         var shards = Enumerable.Range(0, shardCount)
-            .Select(i => new KeyValuePair<string, IActorRef>($"shard-{i}", placeholder))
+            .Select(i => new KeyValuePair<string, IActorRef>($"shard-{i}", placeholders[i]))
             .ToImmutableDictionary( );
         
         // evenly allocate shards to regions
         var shardsPerRegionCount = shardCount / regionCount; // region count can't be zero
-        var shardsPerRegion = shards
-            .Chunk(shardsPerRegionCount)
-            .Select(c =>
-                new KeyValuePair<IActorRef, IImmutableList<string>>(placeholder,
-                    c.Select(d => d.Key).ToImmutableList()))
-            .ToImmutableDictionary();
+        var shardsPerRegionBuilder = ImmutableDictionary.CreateBuilder<IActorRef, IImmutableList<string>>();
+        var i = 0;
+        foreach (var chunk in shards
+                     .Chunk(shardsPerRegionCount))
+        {
+            var region = placeholders[i];
+            shardsPerRegionBuilder.Add(region, chunk.Select(kv => kv.Key).ToImmutableList());
+            i++;
+        }
 
         var regionProxies = ImmutableHashSet<IActorRef>.Empty;
         var unallocatedShards = ImmutableHashSet<string>.Empty;
         
-        return new ShardCoordinator.CoordinatorState(shards, shardsPerRegion, regionProxies, unallocatedShards);
+        return new ShardCoordinator.CoordinatorState(shards, shardsPerRegionBuilder.ToImmutable(), regionProxies, unallocatedShards);
     }
     
     [GlobalSetup]
     public void Setup()
     {
         _system ??= (ExtendedActorSystem)ActorSystem.Create("system", BaseConfig);
-        _placeHolder ??= _system.ActorOf(ctx => { });
+        _placeHolders ??= Enumerable.Range(0, RegionCount).Select(c => _system.ActorOf(ctx => { })).ToArray();
         _replicatedDataSerializer = new ReplicatedDataSerializer(_system);
         _replicatorMessageSerializer = new ReplicatorMessageSerializer(_system);
         _coordinatorState = new LWWRegister<ShardCoordinator.CoordinatorState>(FakeNode.UniqueAddress, 
-            ComputedState(_placeHolder, ShardCount, RegionCount));
+            ComputedState(_placeHolders, ShardCount, RegionCount));
         
         // LWWRegister
         
