@@ -104,7 +104,7 @@ namespace Akka.Event
         /// <exception cref="ArgumentNullException">
         /// This exception is thrown when either the sender or the recipient is undefined.
         /// </exception>
-        public SuppressedDeadLetter(IDeadLetterSuppression message, IActorRef sender, IActorRef recipient) : base(message, sender, recipient)
+        public SuppressedDeadLetter(object message, IActorRef sender, IActorRef recipient) : base(message, sender, recipient)
         {
             if (sender == null) throw new ArgumentNullException(nameof(sender), "SuppressedDeadLetter sender may not be null");
             if (recipient == null) throw new ArgumentNullException(nameof(recipient), "SuppressedDeadLetter recipient may not be null");
