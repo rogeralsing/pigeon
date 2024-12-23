@@ -290,7 +290,7 @@ namespace Akka.Actor
                 }
                 
                 if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(new ActorStopped(Self, Props.Type));
+                    System.EventStream.Publish(CreateActorStoppedEvent());
             }
             catch (Exception x)
             {
