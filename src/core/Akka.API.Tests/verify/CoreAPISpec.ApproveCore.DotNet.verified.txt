@@ -94,6 +94,8 @@ namespace Akka.Actor
         public void CheckReceiveTimeout(bool reschedule = True) { }
         protected void ClearActor(Akka.Actor.ActorBase actor) { }
         protected void ClearActorCell() { }
+        protected virtual Akka.Actor.ActorStarted CreateActorStartedEvent() { }
+        protected virtual Akka.Actor.ActorStopped CreateActorStoppedEvent() { }
         protected virtual Akka.Actor.ActorBase CreateNewActorInstance() { }
         [System.ObsoleteAttribute("Use TryGetChildStatsByName [0.7.1]", true)]
         public Akka.Actor.IInternalActorRef GetChildByName(string name) { }
