@@ -1,3 +1,7 @@
+#### 1.5.34 December 24th 2024 ####
+
+*Placeholder for nightlies*
+
 #### 1.5.33 December 23rd 2024 ####
 
 * [Bump Akka.Analyzers from 0.2.5 to 0.3.0](https://github.com/akkadotnet/akka.net/pull/7415)
