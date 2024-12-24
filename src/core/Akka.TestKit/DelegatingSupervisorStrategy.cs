@@ -22,15 +22,19 @@ namespace Akka.TestKit
         
         protected override Directive Handle(IActorRef child, Exception exception)
         {
-            var childDelegate = Delegates[child];
-            var handleMethod = typeof(SupervisorStrategy).GetMethod(
-                name: "Handle", 
-                bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic, 
-                binder: Type.DefaultBinder,
-                types: new[] {typeof(IActorRef), typeof(Exception)}, 
-                modifiers: null);
-            var result = (Directive) handleMethod.Invoke(childDelegate, new object[]{ child, exception });
-            return result;
+            if(Delegates.TryGetValue(child, out var childDelegate))
+            {
+                var handleMethod = typeof(SupervisorStrategy).GetMethod(
+                    name: "Handle", 
+                    bindingAttr: BindingFlags.Instance | BindingFlags.NonPublic, 
+                    binder: Type.DefaultBinder,
+                    types: new[] {typeof(IActorRef), typeof(Exception)}, 
+                    modifiers: null);
+                var result = (Directive) handleMethod.Invoke(childDelegate, new object[]{ child, exception });
+                return result;
+            }
+
+            return DefaultDecider.Decide(exception);
         }
         
         public override void ProcessFailure(IActorContext context, bool restart, IActorRef child, Exception cause, ChildRestartStats stats,
