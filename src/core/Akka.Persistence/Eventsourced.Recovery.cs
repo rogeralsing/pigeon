@@ -378,7 +378,7 @@ namespace Akka.Persistence
         {
             try
             {
-                _pendingInvocations.First.Value.Handler(payload);
+                _pendingInvocations.First?.Value.Handler(payload);
             }
             finally
             {
