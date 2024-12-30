@@ -349,7 +349,7 @@ namespace Akka.Actor
                 if (System.Settings.DebugLifecycle)
                     Publish(new Debug(_self.Path.ToString(), freshActor.GetType(), "Restarted (" + freshActor + ")"));
                 if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(new ActorRestarted(Self, Props.Type, cause));
+                    System.EventStream.Publish(CreateActorRestartedEvent(cause));
                 
                 // only after parent is up and running again do restart the children which were not stopped
                 foreach (var survivingChild in survivors)
@@ -373,6 +373,13 @@ namespace Akka.Actor
 
         }
 
+        /// <summary>
+        /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
+        /// </summary>
+        protected virtual ActorRestarted CreateActorRestartedEvent(Exception cause)
+        {
+            return new ActorRestarted(Self, Props.Type, cause);
+        }
 
         private void HandleFailed(Failed f) //Called handleFailure in Akka JVM
         {
