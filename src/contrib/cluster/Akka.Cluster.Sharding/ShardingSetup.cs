@@ -14,13 +14,13 @@ namespace Akka.Cluster.Sharding;
 [InternalApi]
 public class ShardingSetup: Setup
 {
-    public static ShardingSetup Create(IShardingMessageAdapter messageAdapter)
-        => new (messageAdapter);
+    public static ShardingSetup Create(IShardingBufferedMessageAdapter bufferedMessageAdapter)
+        => new (bufferedMessageAdapter);
     
-    internal ShardingSetup(IShardingMessageAdapter messageAdapter)
+    internal ShardingSetup(IShardingBufferedMessageAdapter bufferedMessageAdapter)
     {
-        MessageAdapter = messageAdapter;
+        BufferedMessageAdapter = bufferedMessageAdapter;
     }
 
-    public IShardingMessageAdapter MessageAdapter { get; }
+    public IShardingBufferedMessageAdapter BufferedMessageAdapter { get; }
 }

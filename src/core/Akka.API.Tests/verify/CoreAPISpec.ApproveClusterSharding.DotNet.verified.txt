@@ -215,6 +215,11 @@ namespace Akka.Cluster.Sharding
     }
     public interface IShardRegionCommand { }
     public interface IShardRegionQuery { }
+    [Akka.Annotations.InternalApiAttribute()]
+    public interface IShardingBufferedMessageAdapter
+    {
+        object Adapt(object message);
+    }
     public interface IStartableAllocationStrategy : Akka.Actor.INoSerializationVerificationNeeded, Akka.Cluster.Sharding.IShardAllocationStrategy
     {
         void Start();
@@ -334,6 +339,13 @@ namespace Akka.Cluster.Sharding
         public override bool Equals(object obj) { }
         public override int GetHashCode() { }
         public override string ToString() { }
+    }
+    [Akka.Annotations.InternalApiAttribute()]
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
+    public class ShardingSetup : Akka.Actor.Setup.Setup
+    {
+        public Akka.Cluster.Sharding.IShardingBufferedMessageAdapter BufferedMessageAdapter { get; }
+        public static Akka.Cluster.Sharding.ShardingSetup Create(Akka.Cluster.Sharding.IShardingBufferedMessageAdapter bufferedMessageAdapter) { }
     }
     public enum StateStoreMode
     {

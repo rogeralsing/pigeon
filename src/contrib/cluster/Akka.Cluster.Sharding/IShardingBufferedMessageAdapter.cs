@@ -10,17 +10,17 @@ using Akka.Annotations;
 namespace Akka.Cluster.Sharding;
 
 [InternalApi]
-public interface IShardingMessageAdapter
+public interface IShardingBufferedMessageAdapter
 {
     public object Adapt(object message);
 }
 
 [InternalApi]
-internal class EmptyMessageAdapter: IShardingMessageAdapter
+internal class EmptyBufferedMessageAdapter: IShardingBufferedMessageAdapter
 {
-    public static EmptyMessageAdapter Instance { get; } = new ();
+    public static EmptyBufferedMessageAdapter Instance { get; } = new ();
 
-    private EmptyMessageAdapter()
+    private EmptyBufferedMessageAdapter()
     {
     }
         
