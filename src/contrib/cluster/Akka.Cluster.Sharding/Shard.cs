@@ -963,6 +963,8 @@ namespace Akka.Cluster.Sharding
         private readonly Lease? _lease;
         private readonly TimeSpan _leaseRetryInterval = TimeSpan.FromSeconds(5); // won't be used
 
+        private readonly IShardingMessageAdapter _messageAdapter;
+        
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         public IStash Stash { get; set; } = null!;
         public ITimerScheduler Timers { get; set; } = null!;
@@ -1017,6 +1019,9 @@ namespace Akka.Cluster.Sharding
 
                 _leaseRetryInterval = settings.LeaseSettings.LeaseRetryInterval;
             }
+
+            var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
+            _messageAdapter = setup.HasValue ? setup.Value.MessageAdapter : EmptyMessageAdapter.Instance;
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
@@ -1971,7 +1976,7 @@ namespace Akka.Cluster.Sharding
                 if (Log.IsDebugEnabled)
                     Log.Debug("{0}: Message of type [{1}] for entity [{2}] buffered", _typeName, msg.GetType().Name,
                         id);
-                _messageBuffers.Append(id, msg, snd);
+                _messageBuffers.Append(id, _messageAdapter.Adapt(msg), snd);
             }
         }
 
@@ -1994,7 +1999,7 @@ namespace Akka.Cluster.Sharding
                 // and as the child exists, the message will be directly forwarded
                 foreach (var (message, @ref) in messages)
                 {
-                    if (message is ShardRegion.StartEntity se)
+                    if (WrappedMessage.Unwrap(message) is ShardRegion.StartEntity se)
                         StartEntity(se.EntityId, @ref);
                     else
                         DeliverMessage(entityId, message, @ref);

@@ -430,6 +430,7 @@ namespace Akka.Cluster.Sharding
 
         private readonly CoordinatedShutdown _coordShutdown = CoordinatedShutdown.Get(Context.System);
         private readonly TaskCompletionSource<Done> _gracefulShutdownProgress = new();
+        private readonly IShardingMessageAdapter _messageAdapter;
 
         /// <summary>
         /// TBD
@@ -464,6 +465,9 @@ namespace Akka.Cluster.Sharding
             _initRegistrationDelay = TimeSpan.FromMilliseconds(100).Max(new TimeSpan(_retryInterval.Ticks / 2 / 2 / 2));
             _nextRegistrationDelay = _initRegistrationDelay;
 
+            var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
+            _messageAdapter = setup.HasValue ? setup.Value.MessageAdapter : EmptyMessageAdapter.Instance;
+            
             SetupCoordinatedShutdown();
         }
 
@@ -812,7 +816,7 @@ namespace Akka.Cluster.Sharding
             }
             else
             {
-                _shardBuffers.Append(shardId, message, sender);
+                _shardBuffers.Append(shardId, _messageAdapter.Adapt(message), sender);
 
                 // log some insight to how buffers are filled up every 10% of the buffer capacity
                 var total = totalBufferSize + 1;
@@ -1267,7 +1271,7 @@ namespace Akka.Cluster.Sharding
 
                 foreach (var (Message, Ref) in buffer)
                 {
-                    if (Message is RestartShard && !receiver.Equals(Self))
+                    if (WrappedMessage.Unwrap(Message) is RestartShard && !receiver.Equals(Self))
                     {
                         _log.Debug(
                             "{0}: Dropping buffered message {1}, these are only processed by a local ShardRegion.",
