@@ -963,7 +963,7 @@ namespace Akka.Cluster.Sharding
         private readonly Lease? _lease;
         private readonly TimeSpan _leaseRetryInterval = TimeSpan.FromSeconds(5); // won't be used
 
-        private readonly IShardingBufferedMessageAdapter _bufferedMessageAdapter;
+        private readonly IShardingBufferMessageAdapter _bufferMessageAdapter;
         
         public ILoggingAdapter Log { get; } = Context.GetLogger();
         public IStash Stash { get; set; } = null!;
@@ -1021,7 +1021,7 @@ namespace Akka.Cluster.Sharding
             }
 
             var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
-            _bufferedMessageAdapter = setup.HasValue ? setup.Value.BufferedMessageAdapter : EmptyBufferedMessageAdapter.Instance;
+            _bufferMessageAdapter = setup.HasValue ? setup.Value.BufferMessageAdapter : EmptyBufferMessageAdapter.Instance;
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
@@ -1976,7 +1976,7 @@ namespace Akka.Cluster.Sharding
                 if (Log.IsDebugEnabled)
                     Log.Debug("{0}: Message of type [{1}] for entity [{2}] buffered", _typeName, msg.GetType().Name,
                         id);
-                _messageBuffers.Append(id, _bufferedMessageAdapter.Adapt(msg), snd);
+                _messageBuffers.Append(id, _bufferMessageAdapter.Apply(msg, Context), snd);
             }
         }
 

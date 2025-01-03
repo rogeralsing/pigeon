@@ -5,24 +5,25 @@
 //  </copyright>
 // -----------------------------------------------------------------------
 
+using Akka.Actor;
 using Akka.Annotations;
 
 namespace Akka.Cluster.Sharding;
 
 [InternalApi]
-public interface IShardingBufferedMessageAdapter
+public interface IShardingBufferMessageAdapter
 {
-    public object Adapt(object message);
+    public object Apply(object message, IActorContext context);
 }
 
 [InternalApi]
-internal class EmptyBufferedMessageAdapter: IShardingBufferedMessageAdapter
+internal class EmptyBufferMessageAdapter: IShardingBufferMessageAdapter
 {
-    public static EmptyBufferedMessageAdapter Instance { get; } = new ();
+    public static EmptyBufferMessageAdapter Instance { get; } = new ();
 
-    private EmptyBufferedMessageAdapter()
+    private EmptyBufferMessageAdapter()
     {
     }
         
-    public object Adapt(object message) => message;
+    public object Apply(object message, IActorContext context) => message;
 }

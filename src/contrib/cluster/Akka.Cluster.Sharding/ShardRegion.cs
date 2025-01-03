@@ -430,7 +430,7 @@ namespace Akka.Cluster.Sharding
 
         private readonly CoordinatedShutdown _coordShutdown = CoordinatedShutdown.Get(Context.System);
         private readonly TaskCompletionSource<Done> _gracefulShutdownProgress = new();
-        private readonly IShardingBufferedMessageAdapter _bufferedMessageAdapter;
+        private readonly IShardingBufferMessageAdapter _bufferMessageAdapter;
 
         /// <summary>
         /// TBD
@@ -466,7 +466,7 @@ namespace Akka.Cluster.Sharding
             _nextRegistrationDelay = _initRegistrationDelay;
 
             var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
-            _bufferedMessageAdapter = setup.HasValue ? setup.Value.BufferedMessageAdapter : EmptyBufferedMessageAdapter.Instance;
+            _bufferMessageAdapter = setup.HasValue ? setup.Value.BufferMessageAdapter : EmptyBufferMessageAdapter.Instance;
             
             SetupCoordinatedShutdown();
         }
@@ -816,7 +816,7 @@ namespace Akka.Cluster.Sharding
             }
             else
             {
-                _shardBuffers.Append(shardId, _bufferedMessageAdapter.Adapt(message), sender);
+                _shardBuffers.Append(shardId, _bufferMessageAdapter.Apply(message, Context), sender);
 
                 // log some insight to how buffers are filled up every 10% of the buffer capacity
                 var total = totalBufferSize + 1;
