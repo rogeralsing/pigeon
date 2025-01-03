@@ -465,8 +465,7 @@ namespace Akka.Cluster.Sharding
             _initRegistrationDelay = TimeSpan.FromMilliseconds(100).Max(new TimeSpan(_retryInterval.Ticks / 2 / 2 / 2));
             _nextRegistrationDelay = _initRegistrationDelay;
 
-            var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
-            _bufferMessageAdapter = setup.HasValue ? setup.Value.BufferMessageAdapter : EmptyBufferMessageAdapter.Instance;
+            _bufferMessageAdapter = ClusterShardingBufferAdapter.Get(Context.System).BufferMessageAdapter;
             
             SetupCoordinatedShutdown();
         }

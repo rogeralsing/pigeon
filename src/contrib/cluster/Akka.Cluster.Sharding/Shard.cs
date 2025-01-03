@@ -1020,8 +1020,7 @@ namespace Akka.Cluster.Sharding
                 _leaseRetryInterval = settings.LeaseSettings.LeaseRetryInterval;
             }
 
-            var setup = Context.System.Settings.Setup.Get<ShardingSetup>();
-            _bufferMessageAdapter = setup.HasValue ? setup.Value.BufferMessageAdapter : EmptyBufferMessageAdapter.Instance;
+            _bufferMessageAdapter = ClusterShardingBufferAdapter.Get(Context.System).BufferMessageAdapter;
         }
 
         protected override SupervisorStrategy SupervisorStrategy()
