@@ -169,7 +169,7 @@ public class ShardingBufferAdapterSpec: AkkaSpec
         var counterAValue = _counterA.Current;
         var counterBValue = _counterB.Current;
         
-        // Each newly instantiated entities should buffer their message at least once
+        // Each newly instantiated entities should have their messages buffered at least once
         // Buffer message adapter should be called everytime a message is buffered
         counterAValue.Should().BeGreaterOrEqualTo(1);
         counterBValue.Should().BeGreaterOrEqualTo(2);
@@ -183,7 +183,7 @@ public class ShardingBufferAdapterSpec: AkkaSpec
         _regionB.Tell(3, _pB.Ref);
         _pB.ExpectMsg(3);
         
-        // Each entity should not buffer their message once they were instantiated
+        // Each entity should not have their messages buffered once they were instantiated
         _counterA.Current.Should().Be(counterAValue);
         _counterB.Current.Should().Be(counterBValue);
     }
