@@ -12,11 +12,15 @@ namespace Akka.Cluster.Sharding
     public class ClusterSharding : Akka.Actor.IExtension
     {
         public ClusterSharding(Akka.Actor.ExtendedActorSystem system) { }
+        [Akka.Annotations.InternalApiAttribute()]
+        public Akka.Cluster.Sharding.IShardingBufferMessageAdapter BufferMessageAdapter { get; }
         public Akka.Cluster.Sharding.ClusterShardingSettings Settings { get; }
         public System.Collections.Immutable.ImmutableHashSet<string> ShardTypeNames { get; }
         public static Akka.Configuration.Config DefaultConfig() { }
         public Akka.Cluster.Sharding.IShardAllocationStrategy DefaultShardAllocationStrategy(Akka.Cluster.Sharding.ClusterShardingSettings settings) { }
         public static Akka.Cluster.Sharding.ClusterSharding Get(Akka.Actor.ActorSystem system) { }
+        [Akka.Annotations.InternalApiAttribute()]
+        public void SetShardingBufferMessageAdapter(Akka.Cluster.Sharding.IShardingBufferMessageAdapter bufferMessageAdapter) { }
         public Akka.Actor.IActorRef ShardRegion(string typeName) { }
         public Akka.Actor.IActorRef ShardRegionProxy(string typeName) { }
         [System.ObsoleteAttribute("Use one of the overloads that accepts an IMessageExtractor instead")]
@@ -215,6 +219,11 @@ namespace Akka.Cluster.Sharding
     }
     public interface IShardRegionCommand { }
     public interface IShardRegionQuery { }
+    [Akka.Annotations.InternalApiAttribute()]
+    public interface IShardingBufferMessageAdapter
+    {
+        object Apply(object message, Akka.Actor.IActorContext context);
+    }
     public interface IStartableAllocationStrategy : Akka.Actor.INoSerializationVerificationNeeded, Akka.Cluster.Sharding.IShardAllocationStrategy
     {
         void Start();
