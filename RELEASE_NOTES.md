@@ -1,6 +1,18 @@
-#### 1.5.34 December 24th 2024 ####
+#### 1.5.34 January 7th 2024 ####
 
-*Placeholder for nightlies*
+* [TestKit: Fix DelegatingSupervisorStrategy KeyNotFoundException](https://github.com/akkadotnet/akka.net/pull/7438)
+* [Core: Improve actor telemetry type name override](https://github.com/akkadotnet/akka.net/pull/7439)
+* [Sharding: Add `IShardingBufferMessageAdapter` to support tracing over sharding](https://github.com/akkadotnet/akka.net/pull/7441)
+
+To [see the full set of changes in Akka.NET v1.5.34, click here](https://github.com/akkadotnet/akka.net/milestone/117?closed=1).
+
+3 contributors since release 1.5.33
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 2       | 311  | 16   | Gregorius Soedharmo |
+| 2       | 17   | 9    | Aaron Stannard      |
+| 1       | 1    | 1    | jasonmar            |
 
 #### 1.5.33 December 23rd 2024 ####
 
