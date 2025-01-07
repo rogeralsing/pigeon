@@ -111,12 +111,10 @@ namespace Akka.Util.Internal
         /// <param name="hash">TBD</param>
         /// <param name="key">TBD</param>
         /// <param name="value">TBD</param>
+        [Obsolete("Use the dictionary setter directly")]
         public static void AddOrSet<TKey, TValue>(this IDictionary<TKey, TValue> hash, TKey key, TValue value)
         {
-            if (hash.ContainsKey(key))
-                hash[key] = value;
-            else
-                hash.Add(key,value);
+            hash[key] = value;
         }
 
         /// <summary>
@@ -146,7 +144,7 @@ namespace Akka.Util.Internal
         /// <returns>TBD</returns>
         public static IDictionary<TKey, TValue> AddAndReturn<TKey, TValue>(this IDictionary<TKey, TValue> hash, TKey key, TValue value)
         {
-            hash.AddOrSet(key, value);
+            hash[key] = value;
             return hash;
         }
 
