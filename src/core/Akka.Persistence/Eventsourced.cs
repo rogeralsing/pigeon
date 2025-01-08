@@ -81,6 +81,7 @@ namespace Akka.Persistence
         private readonly IStash _internalStash;
         private IActorRef _snapshotStore;
         private IActorRef _journal;
+        private IActorRef _recoveryPermitter;
         private List<IPersistentEnvelope> _journalBatch = new();
         private bool _isWriteInProgress;
         private long _sequenceNr;
@@ -166,6 +167,8 @@ namespace Akka.Persistence
         /// </summary>
         public IActorRef Journal => _journal ??= Extension.JournalFor(JournalPluginId);
 
+        internal IActorRef RecoveryPermitter => _recoveryPermitter ??= Extension.RecoveryPermitterFor(JournalPluginId);
+        
         /// <summary>
         /// TBD
         /// </summary>
