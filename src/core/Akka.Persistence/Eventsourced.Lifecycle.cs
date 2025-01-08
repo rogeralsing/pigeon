@@ -27,7 +27,7 @@ namespace Akka.Persistence
 
         private void RequestRecoveryPermit()
         {
-            Extension.RecoveryPermitter().Tell(Akka.Persistence.RequestRecoveryPermit.Instance, Self);
+            RecoveryPermitter.Tell(Akka.Persistence.RequestRecoveryPermit.Instance, Self);
             ChangeState(WaitingRecoveryPermit(Recovery));
         }
 
@@ -46,6 +46,7 @@ namespace Akka.Persistence
             // Fail fast on missing plugins.
             var j = Journal;
             var s = SnapshotStore;
+            var r = RecoveryPermitter;
             RequestRecoveryPermit();
             base.AroundPreStart();
         }

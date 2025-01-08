@@ -75,7 +75,7 @@ namespace Akka.Persistence.Tests
             akka.persistence.snapshot-store.local.dir = ""target/snapshots-" + typeof(RecoveryPermitterSpec).FullName +
                                                                                @"/"""))
         {
-            permitter = Persistence.Instance.Apply(Sys).RecoveryPermitter();
+            permitter = Persistence.Instance.Apply(Sys).RecoveryPermitterFor(null);
         }
 
         private void RequestPermit(TestProbe probe)
