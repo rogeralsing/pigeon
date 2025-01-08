@@ -32,6 +32,12 @@ namespace Akka.Persistence
         private ReturnRecoveryPermit() { }
     }
 
+    internal sealed class GetMaxPermits
+    {
+        public static GetMaxPermits Instance { get; } = new();
+        private GetMaxPermits() { }
+    }
+
     /// <summary>
     /// When starting many persistent actors at the same time the journal its data store is protected 
     /// from being overloaded by limiting number of recoveries that can be in progress at the same time.
@@ -55,29 +61,36 @@ namespace Akka.Persistence
 
         protected override void OnReceive(object message)
         {
-            if (message is RequestRecoveryPermit)
+            switch (message)
             {
-                Context.Watch(Sender);
-                if (_usedPermits >= MaxPermits)
-                {
-                    if (pending.Count == 0)
-                        Log.Debug("Exceeded max-concurrent-recoveries [{0}]. First pending {1}", MaxPermits, Sender);
-                    pending.AddLast(Sender);
-                    _maxPendingStats = Math.Max(_maxPendingStats, pending.Count);
-                }
-                else
-                {
-                    RecoveryPermitGranted(Sender);
-                }
-            }
-            else if (message is ReturnRecoveryPermit)
-            {
-                ReturnRecoveryPermit(Sender);
-            }
-            else if (message is Terminated terminated && !pending.Remove(terminated.ActorRef))
-            {
-                // pre-mature termination should be rare
-                ReturnRecoveryPermit(terminated.ActorRef);
+                case RequestRecoveryPermit:
+                    Context.Watch(Sender);
+                    if (_usedPermits >= MaxPermits)
+                    {
+                        if (pending.Count == 0)
+                            Log.Debug("Exceeded max-concurrent-recoveries [{0}]. First pending {1}", MaxPermits, Sender);
+                        pending.AddLast(Sender);
+                        _maxPendingStats = Math.Max(_maxPendingStats, pending.Count);
+                    }
+                    else
+                    {
+                        RecoveryPermitGranted(Sender);
+                    }
+
+                    break;
+                
+                case Akka.Persistence.ReturnRecoveryPermit:
+                    ReturnRecoveryPermit(Sender);
+                    break;
+                
+                case Terminated terminated when !pending.Remove(terminated.ActorRef):
+                    // pre-mature termination should be rare
+                    ReturnRecoveryPermit(terminated.ActorRef);
+                    break;
+                
+                case GetMaxPermits:
+                    Sender.Tell(MaxPermits);
+                    break;
             }
         }
 
