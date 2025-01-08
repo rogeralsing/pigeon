@@ -1,3 +1,7 @@
+#### 1.5.35 January 7th 2024 ####
+
+*Placeholder for nightlies*
+
 #### 1.5.34 January 7th 2024 ####
 
 * [TestKit: Fix DelegatingSupervisorStrategy KeyNotFoundException](https://github.com/akkadotnet/akka.net/pull/7438)
