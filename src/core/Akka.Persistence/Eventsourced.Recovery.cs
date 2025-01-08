@@ -282,7 +282,7 @@ namespace Akka.Persistence
         }
 
         private void ReturnRecoveryPermit() =>
-            Extension.RecoveryPermitter().Tell(Akka.Persistence.ReturnRecoveryPermit.Instance, Self);
+            RecoveryPermitter.Tell(Akka.Persistence.ReturnRecoveryPermit.Instance, Self);
 
         private void TransitToProcessingState()
         {
