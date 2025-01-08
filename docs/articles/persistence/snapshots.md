@@ -62,8 +62,6 @@ Enable this feature by setting `snapshot-is-optional = true` in the snapshot sto
 > [!WARNING]
 >Don't set `snapshot-is-optional = true` if events have been deleted because that would result in wrong recovered state if snapshot load fails.
 
-
-
 ## Snapshot Status Handling
 
 Saving or deleting snapshots can either succeed or fail – this information is reported back to the persistent actor via status messages as illustrated in the following table.
