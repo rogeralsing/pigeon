@@ -73,7 +73,7 @@ namespace Akka.Persistence.TestKit.Tests
 
             var startedAt = DateTime.Now;
             var task = delay.InterceptAsync(null);
-            await Task.Delay(delayDuration - epsilon);
+            await Task.Delay(delayDuration);
 
             probe.WasCalled.Should().BeFalse();
             cts.Cancel();
