@@ -51,7 +51,7 @@ persistent actors should use the `deleteSnapshots` method. Depending on the jour
 best practice to do specific deletes with `deleteSnapshot` or to include a `minSequenceNr` as well as a `maxSequenceNr`
 for the `SnapshotSelectionCriteria`.
 
-## Optional snapshots
+## Optional Snapshots
 
 By default, the persistent actor will unconditionally be stopped if the snapshot can't be loaded in the recovery.
 It is possible to make snapshot loading optional. This can be useful when it is alright to ignore snapshot in case
