@@ -135,7 +135,8 @@ namespace Akka.Cluster.Sharding.Tests
                 settings,
                 new TestMessageExtractor(),
                 PoisonPill.Instance,
-                provider
+                provider,
+                null
             ));
 
             Sys.EventStream.Subscribe<Error>(TestActor);
