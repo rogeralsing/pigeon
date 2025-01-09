@@ -162,7 +162,8 @@ public class ShardingBufferAdapterSpec: AkkaSpec
             });
         });
 
-        _regionA.Tell(1, _pA.Ref);
+        // need to make sure that ShardingEnvelope doesn't impacted by this change
+        _regionA.Tell(new ShardingEnvelope("1", 1), _pA.Ref);
         await _pA.ExpectMsgAsync(1);
 
         _regionB.Tell(2, _pB.Ref);
