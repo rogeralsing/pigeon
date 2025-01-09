@@ -112,12 +112,23 @@ namespace Akka.Cluster.Sharding
 
         protected override void OnReceive(object message)
         {
-            var nextId = _entityIds[_index % _entityIds.Length];
+            if (message is Broadcast broadcast)
+            {
+                var unwrapped = broadcast.Message;
+                foreach (var entityId in _entityIds)
+                {
+                    _shardingRef.Forward(new ShardingEnvelope(entityId, unwrapped));
+                }
+            }
+            else
+            {
+                var nextId = _entityIds[_index % _entityIds.Length];
             
-            // have to remember to always allow the sharding envelope to be forwarded
-            _shardingRef.Forward(new ShardingEnvelope(nextId, message));
-            if (_index == int.MaxValue) _index = 0;
-            else _index++;
+                // have to remember to always allow the sharding envelope to be forwarded
+                _shardingRef.Forward(new ShardingEnvelope(nextId, message));
+                if (_index == int.MaxValue) _index = 0;
+                else _index++;
+            }
         }
     }
 
