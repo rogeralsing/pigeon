@@ -6,6 +6,8 @@
 //-----------------------------------------------------------------------
 
 
+using System.Threading.Tasks;
+
 namespace Akka.Persistence.TestKit;
 
 public interface IJournalConnectionBehaviorSetter
