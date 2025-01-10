@@ -49,7 +49,6 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         }
     }
 
-    #endregion
     private sealed class FakeRememberEntitiesProvider: IRememberEntitiesProvider
     {
         private readonly IActorRef _probe;
@@ -93,7 +92,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         private readonly string _shardId;
         private readonly IActorRef _probe;
 
-        private FakeShardStoreActor(string shardId, IActorRef probe)
+        public FakeShardStoreActor(string shardId, IActorRef probe)
         {
             _shardId = shardId;
             _probe = probe;
@@ -119,7 +118,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
     {
         public static Props Props() => Actor.Props.Create(() => new FakeCoordinatorStoreActor());
 
-        private FakeCoordinatorStoreActor()
+        public FakeCoordinatorStoreActor()
         {
             Context.System.EventStream.Publish(new CoordinatorStoreCreated(Context.Self));
         }
@@ -158,6 +157,8 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
             .WithFallback(ClusterSingleton.DefaultConfig());
     }
     
+    #endregion
+    
     private readonly IActorRef _shard;
     private IActorRef _store;
 
@@ -194,6 +195,8 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
     [Fact(DisplayName = "Message wrapped in ShardingEnvelope, buffered by Shard, must arrive in entity actor")]
     public async Task WrappedMessageDelivery()
     {
+        IgnoreMessages<ShardRegion.StartEntityAck>();
+        
         var continueMessage = await ExpectShardStartup();
         
         // this message should be buffered
