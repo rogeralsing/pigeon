@@ -71,7 +71,7 @@ public class ShardingBufferAdapterSpec: AkkaSpec
 
         public object UnApply(object message, IActorContext context)
         {
-            throw new NotImplementedException();
+            return message;
         }
     }
 
