@@ -206,7 +206,7 @@ namespace Akka.Streams.Tests
                 port = {address.Port}
                 hostname = ""{address.Address}""
               }}
-            }}").WithFallback(ConfigurationFactory.Load());
+            }}");
         }
 
         public StreamRefsSpec(ITestOutputHelper output) : this(Config(), output: output)
