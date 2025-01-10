@@ -50,6 +50,11 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
     {
         public object Apply(object message, IActorContext context)
             => new MyEnvelope(message);
+
+        public object UnApply(object message, IActorContext context)
+        {
+            return message is MyEnvelope envelope ? envelope.Message : message;
+        }
     }
     
     private class EchoActor: UntypedActor
@@ -234,7 +239,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         var continueMessage = await ExpectShardStartup();
         
         // this message should be buffered
-        _shard.Tell(new ShardingEnvelope(Msg, new MyEnvelope(Msg)));
+        _shard.Tell(new ShardingEnvelope(Msg, Msg));
         await Task.Yield();
         
         // Tell shard to continue processing

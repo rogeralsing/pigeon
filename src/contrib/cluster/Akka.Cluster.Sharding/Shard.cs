@@ -2004,7 +2004,7 @@ namespace Akka.Cluster.Sharding
                     if (WrappedMessage.Unwrap(message) is ShardRegion.StartEntity se)
                         StartEntity(se.EntityId, @ref);
                     else
-                        DeliverMessage(entityId, message, @ref);
+                        DeliverMessage(entityId, _bufferMessageAdapter.UnApply(message, Context), @ref);
                 }
 
                 TouchLastMessageTimestamp(entityId);
