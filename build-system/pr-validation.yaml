@@ -152,3 +152,15 @@ jobs:
       scriptArgs: CreateNuget nugetprerelease=dev incremental
       outputDirectory: "bin/nuget"
       artifactName: "nuget_pack-$(Build.BuildId)"
+
+  - template: azure.aot.template.yaml
+    parameters:
+      name: "aot_linux"
+      displayName: "AOT Compilation (Linux)"
+      vmImage: "ubuntu-latest"
+
+  - template: azure.aot.template.yaml
+    parameters:
+      name: "aot_windows"
+      displayName: "AOT Compilation (Windows)"
+      vmImage: "windows-latest"
