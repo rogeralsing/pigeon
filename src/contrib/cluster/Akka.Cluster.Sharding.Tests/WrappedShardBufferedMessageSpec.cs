@@ -23,19 +23,6 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
 {
     #region Custom Classes
 
-    private sealed class Message
-    {
-        public static readonly Message Instance = new();
-
-        public string Payload { get; } = Msg;
-        
-        private Message()
-        { }
-
-        public override string ToString()
-            => $"[Message: {Payload}]";
-    }
-    
     private sealed class MyEnvelope : IWrappedMessage
     {
         public MyEnvelope(object message)
@@ -62,7 +49,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         private readonly ILoggingAdapter _log = Context.GetLogger();
         protected override void OnReceive(object message)
         {
-            _log.Info($">>>> OnReceive {message}");
+            _log.Info($">>>> OnReceive {message.GetType()}: {message}");
             if(message is string)
                 Sender.Tell(message);
             else
@@ -178,23 +165,6 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
             .WithFallback(ClusterSingleton.DefaultConfig());
     }
     
-    private class MessageExtractor: HashCodeMessageExtractor
-    {
-        public MessageExtractor() : base(10)
-        {
-        }
-
-        public override string EntityId(object message)
-        {
-            return message switch
-            {
-                Message m => m.Payload,
-                Passivate => Msg,
-                _ => null
-            };
-        }
-    }
-    
     #endregion
     
     private const string Msg = "hit";
@@ -211,7 +181,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
             shardId: "test",
             entityProps: _ => Props.Create(() => new EchoActor()), 
             settings: ClusterShardingSettings.Create(Sys), 
-            extractor: new ExtractorAdapter(new MessageExtractor()), 
+            extractor: new ExtractorAdapter(HashCodeMessageExtractor.Create(10, m => m.ToString())), 
             handOffStopMessage: PoisonPill.Instance, 
             rememberEntitiesProvider: new FakeRememberEntitiesProvider(TestActor),
             bufferMessageAdapter: new BufferMessageAdapter()));
