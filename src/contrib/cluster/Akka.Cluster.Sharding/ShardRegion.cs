@@ -1310,7 +1310,8 @@ namespace Akka.Cluster.Sharding
                     _settings,
                     _messageExtractor,
                     _handOffStopMessage,
-                    _rememberEntitiesProvider)
+                    _rememberEntitiesProvider, 
+                    _bufferMessageAdapter)
                 .WithDispatcher(Context.Props.Dispatcher), name));
 
             _shardsByRef = _shardsByRef.SetItem(shardRef, id);
