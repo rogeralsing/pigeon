@@ -23,6 +23,19 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
 {
     #region Custom Classes
 
+    private sealed class Message
+    {
+        public static readonly Message Instance = new();
+
+        public string Payload { get; } = Msg;
+        
+        private Message()
+        { }
+
+        public override string ToString()
+            => $"[Message: {Payload}]";
+    }
+    
     private sealed class MyEnvelope : IWrappedMessage
     {
         public MyEnvelope(object message)
@@ -44,8 +57,11 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         private readonly ILoggingAdapter _log = Context.GetLogger();
         protected override void OnReceive(object message)
         {
-            _log.Info($">>>> Received {message}");
-            Sender.Tell(message);
+            _log.Info($">>>> OnReceive {message}");
+            if(message is string)
+                Sender.Tell(message);
+            else
+                Unhandled(message);
         }
     }
 
@@ -157,8 +173,26 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
             .WithFallback(ClusterSingleton.DefaultConfig());
     }
     
+    private class MessageExtractor: HashCodeMessageExtractor
+    {
+        public MessageExtractor() : base(10)
+        {
+        }
+
+        public override string EntityId(object message)
+        {
+            return message switch
+            {
+                Message m => m.Payload,
+                Passivate => Msg,
+                _ => null
+            };
+        }
+    }
+    
     #endregion
     
+    private const string Msg = "hit";
     private readonly IActorRef _shard;
     private IActorRef _store;
 
@@ -172,7 +206,7 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
             shardId: "test",
             entityProps: _ => Props.Create(() => new EchoActor()), 
             settings: ClusterShardingSettings.Create(Sys), 
-            extractor: new ExtractorAdapter(HashCodeMessageExtractor.Create(10, m => m.ToString())), 
+            extractor: new ExtractorAdapter(new MessageExtractor()), 
             handOffStopMessage: PoisonPill.Instance, 
             rememberEntitiesProvider: new FakeRememberEntitiesProvider(TestActor),
             bufferMessageAdapter: new BufferMessageAdapter()));
@@ -187,12 +221,12 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         
         await ExpectMsgAsync<ShardInitialized>();
         
-        _shard.Tell(new ShardRegion.StartEntity("hit"));
+        _shard.Tell(new ShardRegion.StartEntity(Msg));
         
         return await ExpectMsgAsync<RememberEntitiesShardStore.UpdateDone>();
     }
     
-    [Fact(DisplayName = "Message wrapped in ShardingEnvelope, buffered by Shard, must arrive in entity actor")]
+    [Fact(DisplayName = "Message wrapped in ShardingEnvelope, buffered by Shard, transformed by BufferMessageAdapter, must arrive in entity actor")]
     public async Task WrappedMessageDelivery()
     {
         IgnoreMessages<ShardRegion.StartEntityAck>();
@@ -200,12 +234,12 @@ public class WrappedShardBufferedMessageSpec: AkkaSpec
         var continueMessage = await ExpectShardStartup();
         
         // this message should be buffered
-        _shard.Tell(new ShardingEnvelope("hit", "hit"));
+        _shard.Tell(new ShardingEnvelope(Msg, new MyEnvelope(Msg)));
         await Task.Yield();
         
         // Tell shard to continue processing
         _shard.Tell(continueMessage);
 
-        await ExpectMsgAsync("hit");
+        await ExpectMsgAsync(Msg);
     }
 }
