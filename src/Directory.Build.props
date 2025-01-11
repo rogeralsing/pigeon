@@ -28,6 +28,7 @@
     <GrpcToolsVersion>2.60.0</GrpcToolsVersion>
     <BenchmarkDotNetVersion>0.13.12</BenchmarkDotNetVersion>
     <NetTestVersion>net8.0</NetTestVersion>
+    <FsharpVersion>6.0.5</FsharpVersion>
     <NetFrameworkTestVersion>net48</NetFrameworkTestVersion>
     <NetStandardLibVersion>netstandard2.0</NetStandardLibVersion>
     <NetLibVersion>net6.0</NetLibVersion>
