@@ -2297,26 +2297,12 @@ namespace Akka.Configuration
         public static Akka.Configuration.Config FromResource(string resourceName, object instanceInAssembly) { }
         public static Akka.Configuration.Config FromResource<TAssembly>(string resourceName) { }
         public static Akka.Configuration.Config FromResource(string resourceName, System.Reflection.Assembly assembly) { }
-        public static Akka.Configuration.Config Load() { }
         public static Akka.Configuration.Config ParseString(string hocon, System.Func<string, Akka.Configuration.Hocon.HoconRoot> includeCallback) { }
         public static Akka.Configuration.Config ParseString(string hocon) { }
     }
 }
 namespace Akka.Configuration.Hocon
 {
-    public class AkkaConfigurationSection : System.Configuration.ConfigurationSection
-    {
-        public AkkaConfigurationSection() { }
-        public Akka.Configuration.Config AkkaConfig { get; }
-        [System.Configuration.ConfigurationPropertyAttribute("hocon", IsRequired=true)]
-        public Akka.Configuration.Hocon.HoconConfigurationElement Hocon { get; set; }
-    }
-    public abstract class CDataConfigurationElement : System.Configuration.ConfigurationElement
-    {
-        protected const string ContentPropertyName = "content";
-        protected CDataConfigurationElement() { }
-        protected override void DeserializeElement(System.Xml.XmlReader reader, bool serializeCollectionKey) { }
-    }
     public class HoconArray : System.Collections.Generic.List<Akka.Configuration.Hocon.HoconValue>, Akka.Configuration.Hocon.IHoconElement
     {
         public HoconArray() { }
@@ -2325,12 +2311,6 @@ namespace Akka.Configuration.Hocon
         public bool IsArray() { }
         public bool IsString() { }
         public override string ToString() { }
-    }
-    public class HoconConfigurationElement : Akka.Configuration.Hocon.CDataConfigurationElement
-    {
-        public HoconConfigurationElement() { }
-        [System.Configuration.ConfigurationPropertyAttribute("content", IsKey=true, IsRequired=true)]
-        public string Content { get; set; }
     }
     public class HoconLiteral : Akka.Configuration.Hocon.IHoconElement
     {
