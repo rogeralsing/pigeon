@@ -94,6 +94,9 @@ namespace Akka.Actor
         public void CheckReceiveTimeout(bool reschedule = True) { }
         protected void ClearActor(Akka.Actor.ActorBase actor) { }
         protected void ClearActorCell() { }
+        protected virtual Akka.Actor.ActorRestarted CreateActorRestartedEvent(System.Exception cause) { }
+        protected virtual Akka.Actor.ActorStarted CreateActorStartedEvent() { }
+        protected virtual Akka.Actor.ActorStopped CreateActorStoppedEvent() { }
         protected virtual Akka.Actor.ActorBase CreateNewActorInstance() { }
         [System.ObsoleteAttribute("Use TryGetChildStatsByName [0.7.1]", true)]
         public Akka.Actor.IInternalActorRef GetChildByName(string name) { }
@@ -318,9 +321,12 @@ namespace Akka.Actor
         public static readonly Akka.Actor.IActorRef NoSender;
         public static readonly Akka.Actor.Nobody Nobody;
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public sealed class ActorRestarted : Akka.Actor.IActorTelemetryEvent, Akka.Actor.INoSerializationVerificationNeeded, Akka.Actor.INotInfluenceReceiveTimeout
     {
+        public ActorRestarted(Akka.Actor.IActorRef subject, System.Type actorType, System.Exception reason, [System.Runtime.CompilerServices.NullableAttribute(2)] string actorTypeOverride = null) { }
         public System.Type ActorType { get; }
+        public string ActorTypeOverride { get; }
         public System.Exception Reason { get; }
         public Akka.Actor.IActorRef Subject { get; }
     }
@@ -350,9 +356,12 @@ namespace Akka.Actor
         public Akka.Actor.ActorSelectionMessage Copy(object message = null, Akka.Actor.SelectionPathElement[] elements = null, System.Nullable<bool> wildCardFanOut = null) { }
         public override string ToString() { }
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public sealed class ActorStarted : Akka.Actor.IActorTelemetryEvent, Akka.Actor.INoSerializationVerificationNeeded, Akka.Actor.INotInfluenceReceiveTimeout
     {
+        public ActorStarted(Akka.Actor.IActorRef subject, System.Type actorType, [System.Runtime.CompilerServices.NullableAttribute(2)] string actorTypeOverride = null) { }
         public System.Type ActorType { get; }
+        public string ActorTypeOverride { get; }
         public Akka.Actor.IActorRef Subject { get; }
     }
     public class ActorStashPlugin : Akka.Actor.ActorProducerPluginBase
@@ -362,9 +371,12 @@ namespace Akka.Actor
         public override void BeforeIncarnated(Akka.Actor.ActorBase actor, Akka.Actor.IActorContext context) { }
         public override bool CanBeAppliedTo(System.Type actorType) { }
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public sealed class ActorStopped : Akka.Actor.IActorTelemetryEvent, Akka.Actor.INoSerializationVerificationNeeded, Akka.Actor.INotInfluenceReceiveTimeout
     {
+        public ActorStopped(Akka.Actor.IActorRef subject, System.Type actorType, [System.Runtime.CompilerServices.NullableAttribute(2)] string actorTypeOverride = null) { }
         public System.Type ActorType { get; }
+        public string ActorTypeOverride { get; }
         public Akka.Actor.IActorRef Subject { get; }
     }
     public abstract class ActorSystem : Akka.Actor.IActorRefFactory, System.IDisposable
@@ -1023,6 +1035,7 @@ namespace Akka.Actor
     public interface IActorTelemetryEvent : Akka.Actor.INoSerializationVerificationNeeded, Akka.Actor.INotInfluenceReceiveTimeout
     {
         System.Type ActorType { get; }
+        string ActorTypeOverride { get; }
         Akka.Actor.IActorRef Subject { get; }
     }
     public interface IAdvancedScheduler : Akka.Actor.IActionScheduler, Akka.Actor.IRunnableScheduler { }
@@ -3686,7 +3699,7 @@ namespace Akka.Event
     }
     public sealed class SuppressedDeadLetter : Akka.Event.AllDeadLetters
     {
-        public SuppressedDeadLetter(Akka.Event.IDeadLetterSuppression message, Akka.Actor.IActorRef sender, Akka.Actor.IActorRef recipient) { }
+        public SuppressedDeadLetter(object message, Akka.Actor.IActorRef sender, Akka.Actor.IActorRef recipient) { }
     }
     public class TraceLogger : Akka.Actor.UntypedActor
     {

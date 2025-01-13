@@ -1,6 +1,45 @@
-#### 1.5.33 December 4th 2024 ####
+#### 1.5.35 January 7th 2024 ####
 
 *Placeholder for nightlies*
+
+#### 1.5.34 January 7th 2024 ####
+
+* [TestKit: Fix DelegatingSupervisorStrategy KeyNotFoundException](https://github.com/akkadotnet/akka.net/pull/7438)
+* [Core: Improve actor telemetry type name override](https://github.com/akkadotnet/akka.net/pull/7439)
+* [Sharding: Add `IShardingBufferMessageAdapter` to support tracing over sharding](https://github.com/akkadotnet/akka.net/pull/7441)
+
+To [see the full set of changes in Akka.NET v1.5.34, click here](https://github.com/akkadotnet/akka.net/milestone/117?closed=1).
+
+3 contributors since release 1.5.33
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 2       | 311  | 16   | Gregorius Soedharmo |
+| 2       | 17   | 9    | Aaron Stannard      |
+| 1       | 1    | 1    | jasonmar            |
+
+#### 1.5.33 December 23rd 2024 ####
+
+* [Bump Akka.Analyzers from 0.2.5 to 0.3.0](https://github.com/akkadotnet/akka.net/pull/7415)
+* [Core: Throw better error message when `Stash()` stashes null message](https://github.com/akkadotnet/akka.net/pull/7425)
+* [Core: Fix `IWrappedMessage` and `IDeadLetterSuppression` handling](https://github.com/akkadotnet/akka.net/pull/7414)
+* [Core: Make actor start/stop telemetry descriptors overridable](https://github.com/akkadotnet/akka.net/pull/7434)
+* [Core: Fix `Result.FromTask` edge case handling](https://github.com/akkadotnet/akka.net/pull/7433)
+* [Remote: HandleStashedInbound performance improvement](https://github.com/akkadotnet/akka.net/pull/7409)
+* [TestKit: Make startup timeout configurable](https://github.com/akkadotnet/akka.net/pull/7423)
+* [TestKit: Make InternalTestActor override its SupervisionStrategy](https://github.com/akkadotnet/akka.net/pull/7221)
+* [Streams: Add custom log level argument to `Log` stage](https://github.com/akkadotnet/akka.net/pull/7424)
+
+To [see the full set of changes in Akka.NET v1.5.33, click here](https://github.com/akkadotnet/akka.net/milestone/116?closed=1).
+
+4 contributors since release 1.5.32
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 9       | 513  | 117  | Aaron Stannard      |
+| 3       | 299  | 49   | Gregorius Soedharmo |
+| 1       | 32   | 1    | Yan Pitangui        |
+| 1       | 3    | 4    | Simon Cropp         |
 
 #### 1.5.32 December 4th 2024 ####
 
