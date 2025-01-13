@@ -1,8 +1,29 @@
-#### 1.5.35 January 7th 2024 ####
+#### 1.5.35 January 13th 2025 ####
 
-*Placeholder for nightlies*
+Akka.NET v1.5.35 is a maintenance release that addresses several bugs and added several improvements.
 
-#### 1.5.34 January 7th 2024 ####
+* [Persistence: Add per-plugin recovery permiter actor](https://github.com/akkadotnet/akka.net/pull/7448)
+* [Persistence: Add support for optional snapshots](https://github.com/akkadotnet/akka.net/pull/7444)
+* [TestKit: Improve XUnit assertion message formatting](https://github.com/akkadotnet/akka.net/pull/7446)
+* [Sharding: Add `Broadcast` message support to sharded daemon process](https://github.com/akkadotnet/akka.net/pull/7451)
+* [Core: Bump Microsoft.Extensions and BCL library version to 8.0.*](https://github.com/akkadotnet/akka.net/pull/7460)
+* [DData: Fix 8.0 BCL library causing DeltaPropagationSelector to throw IndexOutOfBoundException](https://github.com/akkadotnet/akka.net/pull/7462)
+* [Sharding: Fix Shard fails to unwrap buffered messages](https://github.com/akkadotnet/akka.net/pull/7452)
+* [Core: Deprecate AddOrSet utility method](https://github.com/akkadotnet/akka.net/pull/7408)
+
+To [see the full set of changes in Akka.NET v1.5.35, click here](https://github.com/akkadotnet/akka.net/milestone/118?closed=1).
+
+5 contributors since release 1.5.34
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 10      | 431  | 95   | Gregorius Soedharmo |
+| 7       | 4535 | 4515 | Aaron Stannard      |
+| 1       | 90   | 6    | Chris Hoare         |
+| 1       | 5    | 5    | Simon Cropp         |
+| 1       | 173  | 34   | Milan Gardian       |
+
+#### 1.5.34 January 7th 2025 ####
 
 * [TestKit: Fix DelegatingSupervisorStrategy KeyNotFoundException](https://github.com/akkadotnet/akka.net/pull/7438)
 * [Core: Improve actor telemetry type name override](https://github.com/akkadotnet/akka.net/pull/7439)
