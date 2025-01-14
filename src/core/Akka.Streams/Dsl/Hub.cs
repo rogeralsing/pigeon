@@ -380,8 +380,12 @@ namespace Akka.Streams.Dsl
                 // Make some noise
                 public override void OnUpstreamFailure(Exception e)
                 {
-                    throw new MergeHub.ProducerFailed(
-                        "Upstream producer failed with exception, removing from MergeHub now", e);
+                    if(e is Implementation.NormalShutdownException)
+                        CompleteStage();
+                    else {
+                        throw new MergeHub.ProducerFailed(
+                            "Upstream producer failed with exception, removing from MergeHub now", e);
+                    }
                 }
 
                 private void OnDemand(long moreDemand)
