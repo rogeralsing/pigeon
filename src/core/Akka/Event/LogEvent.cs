@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -53,7 +53,9 @@ namespace Akka.Event
         /// <summary>
         /// Initializes a new instance of the <see cref="LogEvent" /> class.
         /// </summary>
+#pragma warning disable CS8618, CS9264
         protected LogEvent()
+#pragma warning restore CS8618, CS9264
         {
             Timestamp = DateTime.UtcNow;
             Thread = Thread.CurrentThread;
@@ -62,7 +64,7 @@ namespace Akka.Event
         /// <summary>
         /// The exception that caused the log event. Can be <c>null</c>
         /// </summary>
-        public Exception Cause { get; protected set; }
+        public Exception? Cause { get; protected set; }
 
         /// <summary>
         /// The timestamp that this event occurred.
