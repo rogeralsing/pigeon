@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ActorCell.FaultHandling.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -290,7 +290,7 @@ namespace Akka.Actor
                 }
                 
                 if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(new ActorStopped(Self, Props.Type));
+                    System.EventStream.Publish(CreateActorStoppedEvent());
             }
             catch (Exception x)
             {
@@ -349,7 +349,7 @@ namespace Akka.Actor
                 if (System.Settings.DebugLifecycle)
                     Publish(new Debug(_self.Path.ToString(), freshActor.GetType(), "Restarted (" + freshActor + ")"));
                 if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(new ActorRestarted(Self, Props.Type, cause));
+                    System.EventStream.Publish(CreateActorRestartedEvent(cause));
                 
                 // only after parent is up and running again do restart the children which were not stopped
                 foreach (var survivingChild in survivors)
@@ -373,6 +373,13 @@ namespace Akka.Actor
 
         }
 
+        /// <summary>
+        /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
+        /// </summary>
+        protected virtual ActorRestarted CreateActorRestartedEvent(Exception cause)
+        {
+            return new ActorRestarted(Self, Props.Type, cause);
+        }
 
         private void HandleFailed(Failed f) //Called handleFailure in Akka JVM
         {

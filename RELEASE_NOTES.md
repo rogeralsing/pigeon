@@ -1,3 +1,120 @@
+#### 1.5.36 January 13th 2025 ####
+
+*Placeholder for nightlies*
+
+#### 1.5.35 January 13th 2025 ####
+
+Akka.NET v1.5.35 is a maintenance release that addresses several bugs and added several improvements.
+
+* [Persistence: Add per-plugin recovery permiter actor](https://github.com/akkadotnet/akka.net/pull/7448)
+* [Persistence: Add support for optional snapshots](https://github.com/akkadotnet/akka.net/pull/7444)
+* [TestKit: Improve XUnit assertion message formatting](https://github.com/akkadotnet/akka.net/pull/7446)
+* [Sharding: Add `Broadcast` message support to sharded daemon process](https://github.com/akkadotnet/akka.net/pull/7451)
+* [Core: Bump Microsoft.Extensions and BCL library version to 8.0.*](https://github.com/akkadotnet/akka.net/pull/7460)
+* [DData: Fix 8.0 BCL library causing DeltaPropagationSelector to throw IndexOutOfBoundException](https://github.com/akkadotnet/akka.net/pull/7462)
+* [Sharding: Fix Shard fails to unwrap buffered messages](https://github.com/akkadotnet/akka.net/pull/7452)
+* [Core: Deprecate AddOrSet utility method](https://github.com/akkadotnet/akka.net/pull/7408)
+
+To [see the full set of changes in Akka.NET v1.5.35, click here](https://github.com/akkadotnet/akka.net/milestone/118?closed=1).
+
+5 contributors since release 1.5.34
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 10      | 431  | 95   | Gregorius Soedharmo |
+| 7       | 4535 | 4515 | Aaron Stannard      |
+| 1       | 90   | 6    | Chris Hoare         |
+| 1       | 5    | 5    | Simon Cropp         |
+| 1       | 173  | 34   | Milan Gardian       |
+
+#### 1.5.34 January 7th 2025 ####
+
+* [TestKit: Fix DelegatingSupervisorStrategy KeyNotFoundException](https://github.com/akkadotnet/akka.net/pull/7438)
+* [Core: Improve actor telemetry type name override](https://github.com/akkadotnet/akka.net/pull/7439)
+* [Sharding: Add `IShardingBufferMessageAdapter` to support tracing over sharding](https://github.com/akkadotnet/akka.net/pull/7441)
+
+To [see the full set of changes in Akka.NET v1.5.34, click here](https://github.com/akkadotnet/akka.net/milestone/117?closed=1).
+
+3 contributors since release 1.5.33
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 2       | 311  | 16   | Gregorius Soedharmo |
+| 2       | 17   | 9    | Aaron Stannard      |
+| 1       | 1    | 1    | jasonmar            |
+
+#### 1.5.33 December 23rd 2024 ####
+
+* [Bump Akka.Analyzers from 0.2.5 to 0.3.0](https://github.com/akkadotnet/akka.net/pull/7415)
+* [Core: Throw better error message when `Stash()` stashes null message](https://github.com/akkadotnet/akka.net/pull/7425)
+* [Core: Fix `IWrappedMessage` and `IDeadLetterSuppression` handling](https://github.com/akkadotnet/akka.net/pull/7414)
+* [Core: Make actor start/stop telemetry descriptors overridable](https://github.com/akkadotnet/akka.net/pull/7434)
+* [Core: Fix `Result.FromTask` edge case handling](https://github.com/akkadotnet/akka.net/pull/7433)
+* [Remote: HandleStashedInbound performance improvement](https://github.com/akkadotnet/akka.net/pull/7409)
+* [TestKit: Make startup timeout configurable](https://github.com/akkadotnet/akka.net/pull/7423)
+* [TestKit: Make InternalTestActor override its SupervisionStrategy](https://github.com/akkadotnet/akka.net/pull/7221)
+* [Streams: Add custom log level argument to `Log` stage](https://github.com/akkadotnet/akka.net/pull/7424)
+
+To [see the full set of changes in Akka.NET v1.5.33, click here](https://github.com/akkadotnet/akka.net/milestone/116?closed=1).
+
+4 contributors since release 1.5.32
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 9       | 513  | 117  | Aaron Stannard      |
+| 3       | 299  | 49   | Gregorius Soedharmo |
+| 1       | 32   | 1    | Yan Pitangui        |
+| 1       | 3    | 4    | Simon Cropp         |
+
+#### 1.5.32 December 4th 2024 ####
+
+Akka.NET v1.5.32 is a maintenance release that addresses several bugs.
+
+* [Cluster.Tools: Deprecate ClusterSingleton.Init() method](https://github.com/akkadotnet/akka.net/pull/7387)
+* [Remote: Ensure RemoteActorRef are serialized correctly when using multiple transports](https://github.com/akkadotnet/akka.net/pull/7393)
+* [Sharding: Harden event-sourced RememberEntities infrastructure against transient persistence failures](https://github.com/akkadotnet/akka.net/pull/7401)
+
+To [see the full set of changes in Akka.NET v1.5.32, click here](https://github.com/akkadotnet/akka.net/milestone/115?closed=1).
+
+3 contributors since release 1.5.31
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 8       | 750  | 350  | Aaron Stannard      |
+| 5       | 505  | 15   | Gregorius Soedharmo |
+| 1       | 2    | 2    | Ran Trifon          |
+
+#### 1.5.31 November 11th 2024 ####
+
+Akka.NET v1.5.31 is a maintenance release that addresses several bugs and added new features.
+
+* [Persistence: Add logging for failed DeleteAsync() that was caused by failed SaveSnapshot()](https://github.com/akkadotnet/akka.net/pull/7360)
+* [Persistence: Fix RecoveryTick timer leak](https://github.com/akkadotnet/akka.net/pull/7343)
+* [Serialization.Hyperion: Fix serializer config bug](https://github.com/akkadotnet/akka.net/pull/7364)
+* [Sharding: Fix potential `ArgumentException` during shard re-balancing](https://github.com/akkadotnet/akka.net/pull/7367)
+* [Cluster: Fix multiple `Member` with the same `Address` crashing `ClusterDaemon`](https://github.com/akkadotnet/akka.net/pull/7371)
+* [Core: Fix `Stash` filtering out identical `Envelope`s](https://github.com/akkadotnet/akka.net/pull/7375)
+* [Streams: Fix `ShellRegistered` message deadletter log](https://github.com/akkadotnet/akka.net/pull/7376)
+* [Sharding: Make lease release in `Shard.PostStop` be blocking instead of using detached async task](https://github.com/akkadotnet/akka.net/pull/7383)
+* [Cluster.Tools: Add missing singleton detection feature for easier infrastructure debugging](https://github.com/akkadotnet/akka.net/pull/7363)
+
+**Upgrade Advisory**
+
+There is a slight change in how actor `Stash` behavior. In previous behavior, `Stash` will filter out any messages that are identical (see explanation below) when it is prepended with another. It will not do so now, which is the actual intended behavior. 
+
+This change will affect `Akka.Persistence` users or users who use the `Stash.Prepend()` method in their code. You will need to add a de-duplication code if your code depends on sending identical messages multiple times to a persistence actor while it is recovering.
+
+Messages are considered as identical if they are sent from the same sender actor and have a payload message that `Equals()` to true against another message. Example payload types would be an object pointing to the same memory address (`ReferenceEquals()` returns true), value types (enum, primitives, structs), and classes that implements the `IEquatable` interface.
+
+To [see the full set of changes in Akka.NET v1.5.31, click here](https://github.com/akkadotnet/akka.net/milestone/114?closed=1).
+
+2 contributors since release 1.5.30
+
+| COMMITS | LOC+ | LOC- | AUTHOR              |
+|---------|------|------|---------------------|
+| 9       | 627  | 154  | Gregorius Soedharmo |
+| 4       | 133  | 40   | Aaron Stannard      |
+
 #### 1.5.30 October 1st 2024 ####
 
 Akka.NET v1.5.29 introduced an interface change on the `IScheduler` that unfortunately caused a lot of other plugins to break due to API compatibility issues. v1.5.30 rolls back that change but still fixes the underlying bug in Akka.Persistence's handling and serialziation of timestamps without any interface changes. v1.5.29 will be deprecated from NuGet.

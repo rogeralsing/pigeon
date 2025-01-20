@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ActorCell.DefaultMessages.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -429,6 +429,22 @@ namespace Akka.Actor
             SendSystemMessage(new Recreate(cause));
         }
 
+        /// <summary>
+        /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
+        /// </summary>
+        protected virtual ActorStarted CreateActorStartedEvent()
+        {
+            return new ActorStarted(Self, Props.Type);
+        }
+        
+        /// <summary>
+        /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
+        /// </summary>
+        protected virtual ActorStopped CreateActorStoppedEvent()
+        {
+            return new ActorStopped(Self, Props.Type);
+        }
+
         private void Create(Exception failure)
         {
             if (failure != null)
@@ -442,7 +458,7 @@ namespace Akka.Actor
                 if (System.Settings.DebugLifecycle)
                     Publish(new Debug(Self.Path.ToString(), created.GetType(), "Started (" + created + ")"));
                 if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(new ActorStarted(Self, Props.Type));
+                    System.EventStream.Publish(CreateActorStartedEvent());
             }
             catch (Exception e)
             {

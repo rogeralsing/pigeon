@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="DeltaPropagationSelector.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -70,7 +70,9 @@ namespace Akka.DistributedData
                 else
                 {
                     var i = (int)(_deltaNodeRoundRobinCounter % all.Length);
-                    slice = all.Slice(i, sliceSize).ToImmutableArray();
+                    var endIndex = i + sliceSize;
+                    if (endIndex > all.Length) endIndex = all.Length;
+                    slice = all[i..endIndex];
                 
                     if (slice.Length != sliceSize)
                         slice = slice.AddRange(all.Take(sliceSize - slice.Length));

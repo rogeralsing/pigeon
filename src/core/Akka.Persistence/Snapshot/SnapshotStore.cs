@@ -1,13 +1,14 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="SnapshotStore.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
 using System;
 using System.Threading.Tasks;
 using Akka.Actor;
+using Akka.Event;
 using Akka.Pattern;
 
 namespace Akka.Persistence.Snapshot
@@ -20,6 +21,7 @@ namespace Akka.Persistence.Snapshot
         private readonly TaskContinuationOptions _continuationOptions = TaskContinuationOptions.ExecuteSynchronously;
         private readonly bool _publish;
         private readonly CircuitBreaker _breaker;
+        private readonly ILoggingAdapter _log;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SnapshotStore"/> class.
@@ -42,6 +44,8 @@ namespace Akka.Persistence.Snapshot
                 config.GetInt("circuit-breaker.max-failures", 10),
                 config.GetTimeSpan("circuit-breaker.call-timeout", TimeSpan.FromSeconds(10)),
                 config.GetTimeSpan("circuit-breaker.reset-timeout", TimeSpan.FromSeconds(30)));
+            
+            _log = Context.GetLogger();
         }
 
         /// <inheritdoc/>
@@ -103,7 +107,16 @@ namespace Akka.Persistence.Snapshot
                 try
                 {
                     ReceivePluginInternal(message);
-                    _breaker.WithCircuitBreaker(() => DeleteAsync(saveSnapshotFailure.Metadata));
+                    _breaker.WithCircuitBreaker(() => DeleteAsync(saveSnapshotFailure.Metadata))
+                        .ContinueWith(t =>
+                        {
+                            if(t.IsFaulted)
+                                _log.Error(t.Exception, "DeleteAsync operation after SaveSnapshot failure failed.");
+                            else if(t.IsCanceled)
+                                _log.Error(t.Exception, t.Exception is not null
+                                    ? "DeleteAsync operation after SaveSnapshot failure canceled."
+                                    : "DeleteAsync operation after SaveSnapshot failure canceled, possibly due to timing out.");
+                        }, TaskContinuationOptions.ExecuteSynchronously);
                 }
                 finally
                 {
