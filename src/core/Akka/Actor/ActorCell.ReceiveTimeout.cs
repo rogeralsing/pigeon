@@ -22,9 +22,12 @@ namespace Akka.Actor
         private ICancelable? _pendingReceiveTimeout;
 
         /// <summary>
-        /// Sets the 
+        /// Sets the receive timeout for this actor - which will trigger a <see cref="ReceiveTimeout"/> message
+        /// to be delivered into the actor's mailbox when time is up.
         /// </summary>
-        /// <param name="timeout">TBD</param>
+        /// <param name="timeout">The timeframe. If <c>null</c> is passed here it will cancel any pending receive
+        /// timeouts. If set to a value greater than <see cref="TimeSpan.Zero"/> then that will become the new
+        /// receive timeout value.</param>
         public void SetReceiveTimeout(TimeSpan? timeout = null)
         {
             _receiveTimeoutDuration = timeout;
