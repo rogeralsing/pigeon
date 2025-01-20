@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -32,9 +33,9 @@ public sealed class DefaultLogFormatSpec : TestKit.Xunit2.TestKit
     {
         _logger = (CustomLogger)Sys.Settings.StdoutLogger;
     }
-    
+
     private readonly CustomLogger _logger;
-    
+
     public class CustomLogger : StandardOutLogger
     {
         protected override void Log(object message)
@@ -44,13 +45,13 @@ public sealed class DefaultLogFormatSpec : TestKit.Xunit2.TestKit
             {
                 _events.Add(e);
             }
-           
+
         }
-            
+
         private readonly ConcurrentBag<LogEvent> _events = new();
         public IReadOnlyCollection<LogEvent> Events => _events;
     }
-    
+
     public static ActorSystemSetup CustomLoggerSetup()
     {
         var hocon = @$"
@@ -109,10 +110,51 @@ public sealed class DefaultLogFormatSpec : TestKit.Xunit2.TestKit
         text = SanitizeThreadNumber(text);
         // to resolve https://github.com/akkadotnet/akka.net/issues/7421
         text = SanitizeTestEventListener(text);
-        
+
         await Verifier.Verify(text);
     }
-    
+
+    /// <summary>
+    /// Validation spec for https://github.com/akkadotnet/akka.net/issues/6855 
+    /// </summary>
+    [Fact]
+    public async Task ShouldUseDefaultLogFormatWithTraceCorrelation()
+    {
+        // arrange
+        var filePath = Path.GetTempFileName();
+
+        // act
+        using (new OutputRedirector(filePath))
+        {
+            using var activity = new Activity("test").Start();
+            Activity.Current = activity;
+
+            Sys.Log.Debug("This is a test {0} {1}", 1, "cheese");
+            Sys.Log.Info("This is a test {0}", 1);
+            Sys.Log.Warning("This is a test {0}", 1);
+            Sys.Log.Error("This is a test {0}", 1);
+
+            // force all logs to be received
+            await AwaitConditionAsync(() =>
+            {
+                return _logger.Events.Count(c => c.Message.ToString()!.Contains("This is a test")) == 4;
+            });
+        }
+
+        // ReSharper disable once MethodHasAsyncOverload
+        var text = File.ReadAllText(filePath);
+
+        // need to sanitize the thread id
+        text = SanitizeDateTime(text);
+        text = SanitizeThreadNumber(text);
+        // to resolve https://github.com/akkadotnet/akka.net/issues/7421
+        text = SanitizeTestEventListener(text);
+        text = SanitizeTraceId(text);
+
+        await Verifier.Verify(text);
+
+    }
+
     private static string SanitizeTestEventListener(string logs)
     {
         var pattern = @"^.*Akka\.TestKit\.TestEventListener.*$";
@@ -136,6 +178,19 @@ public sealed class DefaultLogFormatSpec : TestKit.Xunit2.TestKit
         // Replace all occurrences of the datetime with the constant value
         string result = Regex.Replace(logs, pattern, $"[{replacement}]", RegexOptions.Multiline);
 
+        return result;
+    }
+    
+     // Matches TraceId=<hex>, SpanId=<hex>
+        private const string PATTERN = 
+            @"TraceId=([0-9a-f]{32}), SpanId=([0-9a-f]{16})";
+        
+        private const string REPLACEMENT = 
+            "TraceId=00000000000000000000000000000000, SpanId=0000000000000000";
+
+    private static string SanitizeTraceId(string logs)
+    {
+        var result = Regex.Replace(logs, PATTERN, REPLACEMENT);
         return result;
     }
 }
