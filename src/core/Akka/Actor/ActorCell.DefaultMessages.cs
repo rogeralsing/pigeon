@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -32,8 +32,8 @@ namespace Akka.Actor
         {
             get
             {
-                if (_actor != null)
-                    return _actor.GetType();
+                if (Actor != null)
+                    return Actor.GetType();
                 return GetType();
             }
         }
@@ -41,7 +41,7 @@ namespace Akka.Actor
         private int _currentEnvelopeId;
 
         /// <summary>
-        /// TBD
+        /// INTERNAL API
         /// </summary>
         public int CurrentEnvelopeId
         {
@@ -124,7 +124,7 @@ namespace Akka.Actor
             if (message is IScheduledTellMsg scheduled)
                 message = scheduled.Message;
 
-            var actor = _actor;
+            var actor = Actor;
             var actorType = actor?.GetType();
 
             if (System.Settings.DebugAutoReceive)
@@ -182,13 +182,13 @@ namespace Akka.Actor
             if (message is IScheduledTellMsg scheduled)
                 message = scheduled.Message;
             
-            var wasHandled = _actor.AroundReceive(_state.GetCurrentBehavior(), message);
+            var wasHandled = Actor.AroundReceive(_state.GetCurrentBehavior(), message);
 
-            if (System.Settings.AddLoggingReceive && _actor is ILogReceive)
+            if (System.Settings.AddLoggingReceive && Actor is ILogReceive)
             {
                 //TODO: akka alters the receive handler for logging, but the effect is the same. keep it this way?
                 var msg = "received " + (wasHandled ? "handled" : "unhandled") + " message " + message + " from " + Sender.Path;
-                Publish(new Debug(Self.Path.ToString(), _actor.GetType(), msg));
+                Publish(new Debug(Self.Path.ToString(), Actor.GetType(), msg));
             }
         }
 
@@ -452,7 +452,7 @@ namespace Akka.Actor
             try
             {
                 var created = NewActor();
-                _actor = created;
+                Actor = created;
                 UseThreadContext(() => created.AroundPreStart());
                 CheckReceiveTimeout();
                 if (System.Settings.DebugLifecycle)
@@ -462,10 +462,10 @@ namespace Akka.Actor
             }
             catch (Exception e)
             {
-                if (_actor != null)
+                if (Actor != null)
                 {
-                    ClearActor(_actor);
-                    _actor = null; // ensure that we know that we failed during creation
+                    ClearActor(Actor);
+                    Actor = null; // ensure that we know that we failed during creation
                 }
                 throw new ActorInitializationException(_self, "Exception during creation", e);
             }
@@ -528,7 +528,7 @@ namespace Akka.Actor
             }
             catch (Exception e)
             {
-                _systemImpl.EventStream.Publish(new Error(e, _self.Parent.ToString(), ActorType, "Swallowing exception during message send"));
+                SystemImpl.EventStream.Publish(new Error(e, _self.Parent.ToString(), ActorType, "Swallowing exception during message send"));
             }
         }
 

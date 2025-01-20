@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -14,6 +14,7 @@ using Akka.Dispatch.SysMsg;
 using Akka.Event;
 using System.Reflection;
 using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Akka.Serialization;
 using Akka.Util;
 using Assert = System.Diagnostics.Debug;
@@ -28,7 +29,7 @@ namespace Akka.Actor
     public partial class ActorCell : IUntypedActorContext, ICell
     {
         /// <summary>NOTE! Only constructor and ClearActorFields is allowed to update this</summary>
-        private IInternalActorRef _self;
+        private readonly IInternalActorRef _self;
 
         /// <summary>
         /// Constant placeholder value for actors without a defined unique identifier.
@@ -40,11 +41,8 @@ namespace Akka.Actor
         private const int SuspendedState = 1;
         private const int SuspendedWaitForChildrenState = 2;
 
-        private ActorBase _actor;
-        private bool _actorHasBeenCleared;
-        private volatile Mailbox _mailboxDoNotCallMeDirectly;
-        private readonly ActorSystemImpl _systemImpl;
-        private ActorTaskScheduler _taskScheduler;
+        private volatile Mailbox? _mailboxDoNotCallMeDirectly;
+        private ActorTaskScheduler? _taskScheduler;
 
         // special system message stash, used when we aren't able to handle other system messages just yet
         private LatestFirstSystemMessageList _sysMsgStash = SystemMessageList.LNil;
@@ -78,39 +76,45 @@ namespace Akka.Actor
         {
             _self = self;
             _props = props;
-            _systemImpl = system;
+            SystemImpl = system;
             Parent = parent;
             Dispatcher = dispatcher;
-
         }
 
         /// <summary>
-        /// TBD
+        /// The current message the actor is processing right now.
         /// </summary>
-        public object CurrentMessage { get; internal set; }
+        /// <remarks>
+        /// Will be set to <c>null</c> when not processing any message.
+        /// </remarks>
+        public object? CurrentMessage { get; internal set; }
+        
         /// <summary>
-        /// TBD
+        /// This actor's mailbox instance.
         /// </summary>
         public Mailbox Mailbox => _mailboxDoNotCallMeDirectly;
 
         /// <summary>
-        /// TBD
+        /// This actor's message dispatcher.
         /// </summary>
         public MessageDispatcher Dispatcher { get; private set; }
         /// <summary>
         /// TBD
         /// </summary>
         public bool IsLocal { get { return true; } }
+        
         /// <summary>
-        /// TBD
+        /// A reference to the current actor instance
         /// </summary>
-        internal ActorBase Actor { get { return _actor; } }
+        internal ActorBase Actor { get; private set; }
+
         /// <summary>
-        /// TBD
+        /// Indicates whether or not the actor is currently terminated.
         /// </summary>
         public bool IsTerminated => Mailbox.IsClosed();
+        
         /// <summary>
-        /// TBD
+        /// A static reference to the current actor cell.
         /// </summary>
         internal static ActorCell Current
         {
@@ -118,49 +122,64 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// The <see cref="ActorSystem"/> this actor belongs to.
         /// </summary>
-        public ActorSystem System { get { return _systemImpl; } }
+        public ActorSystem System { get { return SystemImpl; } }
+        
         /// <summary>
-        /// TBD
+        /// INTERNAL API
         /// </summary>
-        public ActorSystemImpl SystemImpl { get { return _systemImpl; } }
+        public ActorSystemImpl SystemImpl { get; }
+
         /// <summary>
-        /// TBD
+        /// The <see cref="Props"/> used to create this actor.
         /// </summary>
+        /// <remarks>
+        /// Will be re-used in the event that the actor restarts.
+        /// </remarks>
         public Props Props { get { return _props; } }
+        
         /// <summary>
-        /// TBD
+        /// The <see cref="IActorRef"/> instance that represents the current actor.
         /// </summary>
         public IActorRef Self { get { return _self; } }
         IActorRef IActorContext.Parent { get { return Parent; } }
+        
         /// <summary>
-        /// TBD
+        /// This actor's parent actor.
         /// </summary>
         public IInternalActorRef Parent { get; private set; }
+        
         /// <summary>
-        /// TBD
+        /// The actor who sent us <see cref="CurrentMessage"/>.
         /// </summary>
-        public IActorRef Sender { get; private set; }
+        /// <remarks>
+        /// Will be <c>null</c> when we are not processing messages.
+        /// </remarks>
+        public IActorRef? Sender { get; private set; }
+        
         /// <summary>
-        /// TBD
+        /// Will return <c>true</c> if <see cref="NumberOfMessages"/> is greater than zero.
         /// </summary>
         public bool HasMessages { get { return Mailbox.HasMessages; } }
+        
         /// <summary>
-        /// TBD
+        /// Current message count inside the mailbox.
         /// </summary>
         public int NumberOfMessages { get { return Mailbox.NumberOfMessages; } }
+        
         /// <summary>
-        /// TBD
+        /// Indicates if we've been cleared after a restart.
         /// </summary>
-        internal bool ActorHasBeenCleared { get { return _actorHasBeenCleared; } }
+        internal bool ActorHasBeenCleared { get; private set; }
+
         /// <summary>
-        /// TBD
+        /// INTERNAL API
         /// </summary>
         internal static Props TerminatedProps { get; } = new TerminatedProps();
 
         /// <summary>
-        /// TBD
+        /// Used by this actor to schedule <see cref="Task"/> instances.
         /// </summary>
         public virtual ActorTaskScheduler TaskScheduler
         {
@@ -254,7 +273,7 @@ namespace Akka.Actor
         /// <returns>TBD</returns>
         public ActorSelection ActorSelection(string path)
         {
-            return ActorRefFactoryShared.ActorSelection(path, _systemImpl, Self);
+            return ActorRefFactoryShared.ActorSelection(path, SystemImpl, Self);
         }
 
         /// <summary>
@@ -264,7 +283,7 @@ namespace Akka.Actor
         /// <returns>TBD</returns>
         public ActorSelection ActorSelection(ActorPath path)
         {
-            return ActorRefFactoryShared.ActorSelection(path, _systemImpl);
+            return ActorRefFactoryShared.ActorSelection(path, SystemImpl);
         }
 
 
@@ -354,7 +373,7 @@ namespace Akka.Actor
             var actor = _props.NewActor();
 
             // Apply default of custom behaviors to actor.
-            var pipeline = _systemImpl.ActorPipelineResolver.ResolvePipeline(actor.GetType());
+            var pipeline = SystemImpl.ActorPipelineResolver.ResolvePipeline(actor.GetType());
 
             pipeline.AfterActorIncarnated(actor, this);
 
@@ -399,7 +418,7 @@ namespace Akka.Actor
 
             try
             {
-                var messageToDispatch = _systemImpl.Settings.SerializeAllMessages
+                var messageToDispatch = SystemImpl.Settings.SerializeAllMessages
                     ? SerializeAndDeserialize(message)
                     : message;
 
@@ -407,7 +426,7 @@ namespace Akka.Actor
             }
             catch (Exception e)
             {
-                _systemImpl.EventStream.Publish(new Error(e, _self.Parent.ToString(), ActorType, "Swallowing exception during message send"));
+                SystemImpl.EventStream.Publish(new Error(e, _self.Parent.ToString(), ActorType, "Swallowing exception during message send"));
             }
         }
 
@@ -446,15 +465,15 @@ namespace Akka.Actor
                     }
                     catch (Exception e)
                     {
-                        _systemImpl.Log?.Error(e, "An error occurred while disposing {0} actor. Reason: {1}",
+                        SystemImpl.Log?.Error(e, "An error occurred while disposing {0} actor. Reason: {1}",
                             actor.GetType(), e.Message);
                     }
                 }
 
                 ReleaseActor(actor);
-                actor.Clear(_systemImpl.DeadLetters);
+                actor.Clear(SystemImpl.DeadLetters);
             }
-            _actorHasBeenCleared = true;
+            ActorHasBeenCleared = true;
             CurrentMessage = null;
 
             //TODO: semantics here? should all "_state" be cleared? or just behavior?
@@ -472,7 +491,7 @@ namespace Akka.Actor
         protected void PrepareForNewActor()
         {
             _state = _state.ClearBehaviorStack();
-            _actorHasBeenCleared = false;
+            ActorHasBeenCleared = false;
         }
         /// <summary>
         /// TBD
@@ -555,7 +574,7 @@ namespace Akka.Actor
 
         private object SerializeAndDeserializePayload(object obj)
         {
-            var serializer = _systemImpl.Serialization.FindSerializerFor(obj);
+            var serializer = SystemImpl.Serialization.FindSerializerFor(obj);
             var oldInfo = Serialization.Serialization.CurrentTransportInformation;
             try
             {
@@ -566,7 +585,7 @@ namespace Akka.Actor
                 var bytes = serializer.ToBinary(obj);
 
                 var manifest = Serialization.Serialization.ManifestFor(serializer, obj);
-                return _systemImpl.Serialization.Deserialize(bytes, serializer.Identifier, manifest);
+                return SystemImpl.Serialization.Deserialize(bytes, serializer.Identifier, manifest);
             }
             finally
             {
