@@ -36,7 +36,6 @@ namespace Akka.Actor
         /// </summary>
         public const int UndefinedUid = 0;
 
-        private Props _props;
         private const int DefaultState = 0;
         private const int SuspendedState = 1;
         private const int SuspendedWaitForChildrenState = 2;
@@ -75,7 +74,7 @@ namespace Akka.Actor
         public ActorCell(ActorSystemImpl system, IInternalActorRef self, Props props, MessageDispatcher dispatcher, IInternalActorRef parent)
         {
             _self = self;
-            _props = props;
+            Props = props;
             SystemImpl = system;
             Parent = parent;
             Dispatcher = dispatcher;
@@ -92,31 +91,33 @@ namespace Akka.Actor
         /// <summary>
         /// This actor's mailbox instance.
         /// </summary>
-        public Mailbox Mailbox => _mailboxDoNotCallMeDirectly;
+        public Mailbox? Mailbox => _mailboxDoNotCallMeDirectly;
 
         /// <summary>
         /// This actor's message dispatcher.
         /// </summary>
         public MessageDispatcher Dispatcher { get; private set; }
+        
         /// <summary>
-        /// TBD
+        /// Returns <c>true</c> if this actor is local to the system. Can only return <c>false</c> if this actor
+        /// is remotely deployed from elsewhere.
         /// </summary>
         public bool IsLocal { get { return true; } }
         
         /// <summary>
         /// A reference to the current actor instance
         /// </summary>
-        internal ActorBase Actor { get; private set; }
+        internal ActorBase? Actor { get; private set; }
 
         /// <summary>
-        /// Indicates whether or not the actor is currently terminated.
+        /// Indicates whether the actor is currently terminated.
         /// </summary>
-        public bool IsTerminated => Mailbox.IsClosed();
+        public bool IsTerminated => Mailbox!.IsClosed();
         
         /// <summary>
         /// A static reference to the current actor cell.
         /// </summary>
-        internal static ActorCell Current
+        internal static ActorCell? Current
         {
             get { return InternalCurrentActorCellKeeper.Current; }
         }
@@ -137,8 +138,8 @@ namespace Akka.Actor
         /// <remarks>
         /// Will be re-used in the event that the actor restarts.
         /// </remarks>
-        public Props Props { get { return _props; } }
-        
+        public Props Props { get; private set; }
+
         /// <summary>
         /// The <see cref="IActorRef"/> instance that represents the current actor.
         /// </summary>
@@ -161,12 +162,12 @@ namespace Akka.Actor
         /// <summary>
         /// Will return <c>true</c> if <see cref="NumberOfMessages"/> is greater than zero.
         /// </summary>
-        public bool HasMessages { get { return Mailbox.HasMessages; } }
+        public bool HasMessages { get { return Mailbox!.HasMessages; } }
         
         /// <summary>
         /// Current message count inside the mailbox.
         /// </summary>
-        public int NumberOfMessages { get { return Mailbox.NumberOfMessages; } }
+        public int NumberOfMessages { get { return Mailbox!.NumberOfMessages; } }
         
         /// <summary>
         /// Indicates if we've been cleared after a restart.
@@ -214,7 +215,7 @@ namespace Akka.Actor
             /*
              * The mailboxType was calculated taking into account what the MailboxType
              * has promised to produce. If that was more than the default, then we need
-             * to reverify here because the dispatcher may well have screwed it up.
+             * to re-verify here because the dispatcher may well have screwed it up.
              */
             // we need to delay the failure to the point of actor creation so we can handle
             // it properly in the normal way
@@ -235,7 +236,7 @@ namespace Akka.Actor
             }
 
             SwapMailbox(mailbox);
-            Mailbox.SetActor(this);
+            Mailbox!.SetActor(this);
 
             //// ➡➡➡ NEVER SEND THE SAME SYSTEM MESSAGE OBJECT TO TWO ACTORS ⬅⬅⬅
             var self = Self;
@@ -293,34 +294,42 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Returns all the children of this actor.
         /// </summary>
-        /// <returns>TBD</returns>
         public IEnumerable<IInternalActorRef> GetChildren()
         {
             return ChildrenContainer.Children;
         }
 
         /// <summary>
-        /// TBD
+        /// Changes behaviors to the new <see cref="Receive"/>.
         /// </summary>
-        /// <param name="receive">TBD</param>
+        /// <remarks>
+        /// Forgets any prior behaviors and doesn't maintain a "behavior stack."
+        ///
+        /// See <see cref="BecomeStacked"/> if that's what you want.
+        /// </remarks>
         public void Become(Receive receive)
         {
             _state = _state.Become(receive);
         }
 
         /// <summary>
-        /// TBD
+        /// Changes behaviors to the new <see cref="Receive"/> while maintaining the previous
+        /// behavior in this actor's "behavior stack."
         /// </summary>
-        /// <param name="receive">TBD</param>
+        /// <remarks>
+        /// Most users typically use <see cref="Become"/> so they can avoid having to maintain a behavior stack.
+        ///
+        /// Only use this method if you know what you're doing.
+        /// </remarks>
         public void BecomeStacked(Receive receive)
         {
             _state = _state.BecomeStacked(receive);
         }
 
         /// <summary>
-        /// TBD
+        /// Used in combination with <see cref="BecomeStacked"/> - used to pop old behaviors off of the stack.
         /// </summary>
         public void UnbecomeStacked()
         {
@@ -347,10 +356,10 @@ namespace Akka.Actor
             return uid;
         }
 
-        private ActorBase NewActor()
+        private ActorBase? NewActor()
         {
             PrepareForNewActor();
-            ActorBase instance = null;
+            ActorBase? instance = null;
             //set the thread static context or things will break
             UseThreadContext(() =>
             {
@@ -358,19 +367,19 @@ namespace Akka.Actor
                 instance = CreateNewActorInstance();
                 //TODO: this overwrites any already initialized supervisor strategy
                 //We should investigate what we can do to handle this better
-                instance.SupervisorStrategyInternal = _props.SupervisorStrategy;
+                instance.SupervisorStrategyInternal = Props.SupervisorStrategy;
                 //defaults to null - won't affect lazy instantiation unless explicitly set in props
             });
             return instance;
         }
 
         /// <summary>
-        /// TBD
+        /// Used to create a new instance of the actor from its <see cref="Props"/>
         /// </summary>
-        /// <returns>TBD</returns>
+        /// <returns>A new instance of this actor.</returns>
         protected virtual ActorBase CreateNewActorInstance()
         {
-            var actor = _props.NewActor();
+            var actor = Props.NewActor();
 
             // Apply default of custom behaviors to actor.
             var pipeline = SystemImpl.ActorPipelineResolver.ResolvePipeline(actor.GetType());
@@ -385,9 +394,9 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Performs an activity inside this actor's thread-safe context.
         /// </summary>
-        /// <param name="action">TBD</param>
+        /// <param name="action">The action to perform.</param>
         public void UseThreadContext(Action action)
         {
             var tmp = InternalCurrentActorCellKeeper.Current;
@@ -404,9 +413,9 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Used to send a message to the actor's mailbox.
         /// </summary>
-        /// <param name="message">TBD</param>
+        /// <param name="message">The message + sender envelope.</param>
         public virtual void SendMessage(Envelope message)
         {
             if (Mailbox == null)
@@ -431,32 +440,39 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Used to send a message to the actor's mailbox.
         /// </summary>
-        /// <param name="sender">TBD</param>
-        /// <param name="message">TBD</param>
+        /// <param name="sender">The sender of the message.</param>
+        /// <param name="message">The message to send.</param>
         public virtual void SendMessage(IActorRef sender, object message)
         {
             SendMessage(new Envelope(message, sender, System));
         }
 
         /// <summary>
-        /// TBD
+        /// Clears all the contents of the ActorCell.
         /// </summary>
+        /// <remarks>
+        /// Used during shutdown.
+        /// </remarks>
         protected void ClearActorCell()
         {
             UnstashAll();
-            _props = TerminatedProps;
+            Props = TerminatedProps;
         }
 
         /// <summary>
-        /// TBD
+        /// Clears the actor's state and prepares it for GC.
         /// </summary>
-        /// <param name="actor">TBD</param>
-        protected void ClearActor(ActorBase actor)
+        /// <param name="actor">The actor instance.</param>
+        /// <remarks>
+        /// Used during actor restarts and shutdowns.
+        /// </remarks>
+        protected void ClearActor(ActorBase? actor)
         {
             if (actor != null)
             {
+                // ReSharper disable once SuspiciousTypeConversion.Global
                 if (actor is IDisposable disposable)
                 {
                     try
@@ -475,29 +491,25 @@ namespace Akka.Actor
             }
             ActorHasBeenCleared = true;
             CurrentMessage = null;
-
-            //TODO: semantics here? should all "_state" be cleared? or just behavior?
+            
             _state = _state.ClearBehaviorStack();
         }
 
         private void ReleaseActor(ActorBase a)
         {
-            _props.Release(a);
+            Props.Release(a);
         }
 
         /// <summary>
-        /// TBD
+        /// Clears the state for a new actor instance following a restart.
         /// </summary>
         protected void PrepareForNewActor()
         {
             _state = _state.ClearBehaviorStack();
             ActorHasBeenCleared = false;
         }
-        /// <summary>
-        /// TBD
-        /// </summary>
-        /// <param name="actor">TBD</param>
-        protected void SetActorFields(ActorBase actor)
+
+        protected static void SetActorFields(ActorBase? actor)
         {
             actor?.Unclear();
         }
@@ -526,13 +538,12 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// Gets the current sender or <see cref="ActorRefs.NoSender"/>
         /// </summary>
-        /// <returns>TBD</returns>
         public static IActorRef GetCurrentSenderOrNoSender()
         {
             var current = Current;
-            return current != null ? current.Sender : ActorRefs.NoSender;
+            return current?.Sender ?? ActorRefs.NoSender;
         }
 
         #nullable enable
@@ -556,7 +567,7 @@ namespace Akka.Actor
             }
             catch (Exception e)
             {
-                throw new SerializationException($"Failed to serialize and deserialize payload object [{unwrapped.GetType()}]. Envelope: [{envelope}], Actor type: [{Actor.GetType()}]", e);
+                throw new SerializationException($"Failed to serialize and deserialize payload object [{unwrapped.GetType()}]. Envelope: [{envelope}], Actor type: [{Actor?.GetType()}]", e);
             }
 
             // Check that this message was ever wrapped

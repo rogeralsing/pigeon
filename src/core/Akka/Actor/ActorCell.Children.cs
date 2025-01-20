@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -199,7 +199,7 @@ namespace Akka.Actor
         /// </summary>
         /// <param name="actor">TBD</param>
         /// <returns>TBD</returns>
-        public ChildRestartStats InitChild(IInternalActorRef actor)
+        public ChildRestartStats? InitChild(IInternalActorRef actor)
         {
             var name = actor.Path.Name;
             while (true)

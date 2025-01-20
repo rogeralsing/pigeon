@@ -238,7 +238,8 @@ namespace Akka.Actor
                 {
                     _state = _state.AddWatchedBy(watcher);
 
-                    if (System.Settings.DebugLifecycle) Publish(new Debug(Self.Path.ToString(), Actor.GetType(), string.Format("now watched by {0}", watcher)));
+                    if (System.Settings.DebugLifecycle) Publish(new Debug(Self.Path.ToString(), Actor?.GetType(),
+                        $"now watched by {watcher}"));
                 }, watcher);
             }
             else if (!watcheeSelf && watcherSelf)
@@ -247,7 +248,7 @@ namespace Akka.Actor
             }
             else
             {
-                Publish(new Warning(Self.Path.ToString(), Actor.GetType(),
+                Publish(new Warning(Self.Path.ToString(), Actor?.GetType(),
                     $"BUG: illegal Watch({watchee},{watcher} for {Self}"));
             }
         }
@@ -278,7 +279,7 @@ namespace Akka.Actor
             }
             else
             {
-                Publish(new Warning(Self.Path.ToString(), Actor.GetType(),
+                Publish(new Warning(Self.Path.ToString(), Actor?.GetType(),
                     $"BUG: illegal Unwatch({watchee},{watcher} for {Self}"));
             }
         }

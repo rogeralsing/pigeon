@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 
 namespace Akka.Actor
@@ -19,10 +19,10 @@ namespace Akka.Actor
     public partial class ActorCell
     {
         private TimeSpan? _receiveTimeoutDuration;
-        private ICancelable _pendingReceiveTimeout;
+        private ICancelable? _pendingReceiveTimeout;
 
         /// <summary>
-        /// TBD
+        /// Sets the 
         /// </summary>
         /// <param name="timeout">TBD</param>
         public void SetReceiveTimeout(TimeSpan? timeout = null)

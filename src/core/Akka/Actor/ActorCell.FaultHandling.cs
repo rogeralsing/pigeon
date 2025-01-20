@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -31,7 +31,7 @@ namespace Akka.Actor
         }
 
         // ReSharper disable once InconsistentNaming
-        private IActorRef _failed_DoNotUseMeDirectly;
+        private IActorRef? _failed_DoNotUseMeDirectly;
         private bool IsFailed { get { return _failed_DoNotUseMeDirectly != null; } }
         private void SetFailed(IActorRef perpetrator)
         {
@@ -41,7 +41,7 @@ namespace Akka.Actor
         {
             _failed_DoNotUseMeDirectly = null;
         }
-        private IActorRef Perpetrator { get { return _failed_DoNotUseMeDirectly; } }
+        private IActorRef? Perpetrator { get { return _failed_DoNotUseMeDirectly; } }
 
         /// <summary>Re-create the actor in response to a failure.</summary>
         private void FaultRecreate(Exception cause)
@@ -342,7 +342,7 @@ namespace Akka.Actor
                 var freshActor = NewActor();
                 Actor = freshActor; // this must happen before postRestart has a chance to fail
                 if (ReferenceEquals(freshActor, failedActor))
-                    SetActorFields(freshActor); // If the creator returns the same instance, we need to restore our nulled out fields.
+                    ActorCell.SetActorFields(freshActor); // If the creator returns the same instance, we need to restore our nulled out fields.
 
                 UseThreadContext(() => freshActor.AroundPostRestart(cause, null));
 
