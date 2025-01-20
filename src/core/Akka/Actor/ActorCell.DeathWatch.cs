@@ -195,10 +195,12 @@ namespace Akka.Actor
         }
 
         /// <summary>
-        /// TBD
+        /// INTERNAL API
         /// </summary>
-        /// <param name="actor">TBD</param>
-        protected void UnwatchWatchedActors(ActorBase actor)
+        /// <remarks>
+        /// Cleanup routine during actor shutdown.
+        /// </remarks>
+        protected void UnwatchWatchedActors(ActorBase? actor)
         {
             var watching = _state
                 .GetWatching()
@@ -270,7 +272,8 @@ namespace Akka.Actor
                 {
                     _state = _state.RemoveWatchedBy(watcher);
 
-                    if (System.Settings.DebugLifecycle) Publish(new Debug(Self.Path.ToString(), Actor.GetType(), string.Format("no longer watched by {0}", watcher)));
+                    if (System.Settings.DebugLifecycle) Publish(new Debug(Self.Path.ToString(), Actor?.GetType(),
+                        $"no longer watched by {watcher}"));
                 }, watcher);
             }
             else if (!watcheeSelf && watcherSelf)

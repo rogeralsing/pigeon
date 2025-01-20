@@ -356,7 +356,7 @@ namespace Akka.Actor
             return uid;
         }
 
-        private ActorBase? NewActor()
+        private ActorBase NewActor()
         {
             PrepareForNewActor();
             ActorBase? instance = null;
@@ -370,7 +370,10 @@ namespace Akka.Actor
                 instance.SupervisorStrategyInternal = Props.SupervisorStrategy;
                 //defaults to null - won't affect lazy instantiation unless explicitly set in props
             });
-            return instance;
+
+
+            Assert.Assert(instance != null, (string)(nameof(instance) + " != null"));
+            return instance!;
         }
 
         /// <summary>

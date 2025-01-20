@@ -36,10 +36,10 @@ namespace Akka.Actor
         }
 
         private ImmutableDictionary<string, FunctionRef> FunctionRefs => Volatile.Read(ref _functionRefsDoNotCallMeDirectly);
-        internal bool TryGetFunctionRef(string name, out FunctionRef functionRef) =>
+        internal bool TryGetFunctionRef(string name, out FunctionRef? functionRef) =>
             FunctionRefs.TryGetValue(name, out functionRef);
 
-        internal bool TryGetFunctionRef(string name, int uid, out FunctionRef functionRef) =>
+        internal bool TryGetFunctionRef(string name, int uid, out FunctionRef? functionRef) =>
             FunctionRefs.TryGetValue(name, out functionRef) && (uid == ActorCell.UndefinedUid || uid == functionRef.Path.Uid);
 
         internal FunctionRef AddFunctionRef(Action<IActorRef, object> tell, string suffix = "")
@@ -93,7 +93,7 @@ namespace Akka.Actor
         /// This exception is thrown if the actor tries to create a child while it is terminating or is terminated.
         /// </exception>
         /// <returns>A reference to the initialized child actor.</returns>
-        public virtual IActorRef AttachChild(Props props, bool isSystemService, string name = null)
+        public virtual IActorRef AttachChild(Props props, bool isSystemService, string? name = null)
         {
             return MakeChild(props, name == null ? GetRandomActorName() : CheckName(name), true, isSystemService);
         }
@@ -112,13 +112,13 @@ namespace Akka.Actor
         /// <exception cref="InvalidOperationException">
         /// This exception is thrown if the actor tries to create a child while it is terminating or is terminated.
         /// </exception>
-        /// <returns>TBD</returns>
-        public virtual IActorRef ActorOf(Props props, string name = null)
+        /// <returns>A reference to the new child actor.</returns>
+        public virtual IActorRef ActorOf(Props props, string? name = null)
         {
             return ActorOf(props, name, false, false);
         }
 
-        private IActorRef ActorOf(Props props, string name, bool isAsync, bool isSystemService)
+        private IActorRef ActorOf(Props props, string? name, bool isAsync, bool isSystemService)
         {
             if (name == null)
                 name = GetRandomActorName();
@@ -211,7 +211,7 @@ namespace Akka.Actor
                     {
                         case ChildRestartStats restartStats:
                             return restartStats;
-                        case ChildNameReserved _:
+                        case ChildNameReserved:
                             var crs = new ChildRestartStats(actor);
                             if (SwapChildrenRefs(cc, cc.Add(name, crs)))
                                 return crs;
@@ -268,7 +268,7 @@ namespace Akka.Actor
         /// <summary>
         ///     Suspends the children.
         /// </summary>
-        private void SuspendChildren(List<IActorRef> exceptFor = null)
+        private void SuspendChildren(List<IActorRef>? exceptFor = null)
         {
             if (exceptFor == null)
             {
@@ -292,7 +292,7 @@ namespace Akka.Actor
         /// <summary>
         ///     Resumes the children.
         /// </summary>
-        private void ResumeChildren(Exception causedByFailure, IActorRef perpetrator)
+        private void ResumeChildren(Exception? causedByFailure, IActorRef? perpetrator)
         {
             foreach (var stats in ChildrenContainer.Stats)
             {
@@ -318,7 +318,7 @@ namespace Akka.Actor
         /// <summary>
         /// Tries to get the stats for the child with the specified name. This ignores children for whom only names have been reserved.
         /// </summary>
-        private bool TryGetChildRestartStatsByName(string name, out ChildRestartStats child)
+        private bool TryGetChildRestartStatsByName(string name, out ChildRestartStats? child)
         {
             if (ChildrenContainer.TryGetByName(name, out var stats))
             {
@@ -361,20 +361,20 @@ namespace Akka.Actor
 
                 if (TryGetFunctionRef(name, out var functionRef))
                 {
-                    return functionRef;
+                    return functionRef!;
                 }
             }
             else
             {
                 var (s, uid) = GetNameAndUid(name);
-                if (TryGetChildRestartStatsByName(s, out var stats) && (uid == ActorCell.UndefinedUid || uid == stats.Uid))
+                if (TryGetChildRestartStatsByName(s, out var stats) && (uid == UndefinedUid || uid == stats?.Uid))
                 {
-                    return stats.Child;
+                    return stats!.Child;
                 }
 
                 if (TryGetFunctionRef(s, uid, out var functionRef))
                 {
-                    return functionRef;
+                    return functionRef!;
                 }
             }
             return ActorRefs.Nobody;
@@ -385,15 +385,14 @@ namespace Akka.Actor
         /// </summary>
         /// <param name="child">TBD</param>
         /// <returns>TBD</returns>
-        protected SuspendReason RemoveChildAndGetStateChange(IActorRef child)
+        protected SuspendReason? RemoveChildAndGetStateChange(IActorRef child)
         {
             if (ChildrenContainer is TerminatingChildrenContainer terminating)
             {
                 var n = RemoveChild(child);
-                if (!(n is TerminatingChildrenContainer))
+                if (n is not TerminatingChildrenContainer)
                     return terminating.Reason;
-                else
-                    return null;
+                return null;
             }
 
             RemoveChild(child);
@@ -427,7 +426,7 @@ namespace Akka.Actor
             if (SystemImpl.Settings.SerializeAllCreators && !systemService && !(props.Deploy.Scope is LocalScope))
             {
                 var oldInfo = Serialization.Serialization.CurrentTransportInformation;
-                object propArgument = null;
+                object? propArgument = null;
                 try
                 {
                     if (oldInfo == null)
@@ -471,35 +470,33 @@ namespace Akka.Actor
             {
                 throw new InvalidOperationException("Cannot create child while terminating or terminated");
             }
-            else
+
+            // this name will either be unreserved or overwritten with a real child below
+            ReserveChild(name);
+            IInternalActorRef actor;
+            try
             {
-                // this name will either be unreserved or overwritten with a real child below
-                ReserveChild(name);
-                IInternalActorRef actor;
-                try
-                {
-                    var childPath = new ChildActorPath(Self.Path, name, NewUid());
-                    actor = SystemImpl.Provider.ActorOf(SystemImpl, props, _self, childPath,
-                        systemService: systemService, deploy: null, lookupDeploy: true, async: async);
-                }
-                catch
-                {
-                    //if actor creation failed, unreserve the name
-                    UnreserveChild(name);
-                    throw;
-                }
-
-                if (Mailbox != null && IsFailed)
-                {
-                    for (var i = 1; i <= Mailbox.SuspendCount(); i++)
-                        actor.Suspend();
-                }
-
-                //replace the reservation with the real actor
-                InitChild(actor);
-                actor.Start();
-                return actor;
+                var childPath = new ChildActorPath(Self.Path, name, NewUid());
+                actor = SystemImpl.Provider.ActorOf(SystemImpl, props, _self, childPath,
+                    systemService: systemService, deploy: null, lookupDeploy: true, async: async);
             }
+            catch
+            {
+                //if actor creation failed, unreserve the name
+                UnreserveChild(name);
+                throw;
+            }
+
+            if (Mailbox != null && IsFailed)
+            {
+                for (var i = 1; i <= Mailbox.SuspendCount(); i++)
+                    actor.Suspend();
+            }
+
+            //replace the reservation with the real actor
+            InitChild(actor);
+            actor.Start();
+            return actor;
         }
     }
 }

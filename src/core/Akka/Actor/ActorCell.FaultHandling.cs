@@ -33,7 +33,7 @@ namespace Akka.Actor
         // ReSharper disable once InconsistentNaming
         private IActorRef? _failed_DoNotUseMeDirectly;
         private bool IsFailed { get { return _failed_DoNotUseMeDirectly != null; } }
-        private void SetFailed(IActorRef perpetrator)
+        private void SetFailed(IActorRef? perpetrator)
         {
             _failed_DoNotUseMeDirectly = perpetrator;
         }
@@ -81,7 +81,7 @@ namespace Akka.Actor
                     ClearActor(Actor);
                 }
 
-                global::System.Diagnostics.Debug.Assert(Mailbox.IsSuspended(), "Mailbox must be suspended during restart, status=" + Mailbox.CurrentStatus());
+                global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), "Mailbox must be suspended during restart, status=" + Mailbox.CurrentStatus());
                 if (!SetChildrenTerminationReason(new SuspendReason.Recreation(cause)))
                 {
                     FinishRecreate(cause, failedActor);
@@ -108,7 +108,7 @@ namespace Akka.Actor
         /// </summary>
         /// <param name="causedByFailure">The exception that caused the failure. signifies if it was our own failure 
         /// which prompted this action.</param>
-        private void FaultResume(Exception causedByFailure)
+        private void FaultResume(Exception? causedByFailure)
         {
             if (Actor == null)
             {
@@ -144,7 +144,7 @@ namespace Akka.Actor
         /// </summary>
         private void FaultCreate()
         {
-            global::System.Diagnostics.Debug.Assert(Mailbox.IsSuspended(), "Mailbox must be suspended during failed creation, status=" + Mailbox.CurrentStatus());
+            global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), "Mailbox must be suspended during failed creation, status=" + Mailbox.CurrentStatus());
             global::System.Diagnostics.Debug.Assert(_self.Equals(Perpetrator), "Perpetrator should be self");
 
             SetReceiveTimeout(null);
@@ -218,7 +218,7 @@ namespace Akka.Actor
             }
         }
 
-        private void HandleInvokeFailure(Exception cause, IEnumerable<IActorRef> childrenNotToSuspend = null)
+        private void HandleInvokeFailure(Exception cause, IEnumerable<IActorRef>? childrenNotToSuspend = null)
         {
             // prevent any further messages to be processed until the actor has been restarted
             if (!IsFailed)
@@ -230,7 +230,7 @@ namespace Akka.Actor
                     if (CurrentMessage is Failed)
                     {
                         var failedChild = Sender;
-                        childrenNotToSuspend = childrenNotToSuspend.Concat(failedChild); //Function handles childrenNotToSuspend being null
+                        childrenNotToSuspend = childrenNotToSuspend.Concat(failedChild)!; //Function handles childrenNotToSuspend being null
                         SetFailed(failedChild);
                     }
                     else
@@ -247,7 +247,7 @@ namespace Akka.Actor
                 {
                     HandleNonFatalOrInterruptedException(() =>
                     {
-                        Publish(new Error(e, _self.Path.ToString(), Actor.GetType(), "Emergency stop: exception in failure handling for " + cause));
+                        Publish(new Error(e, _self.Path.ToString(), Actor?.GetType(), "Emergency stop: exception in failure handling for " + cause));
                         try
                         {
                             StopChildren();
@@ -396,18 +396,18 @@ namespace Akka.Actor
                 var statsUid = childStats.Child.Path.Uid;
                 if (statsUid == f.Uid)
                 {
-                    var handled = Actor.SupervisorStrategyInternal.HandleFailure(this, failedChild, f.Cause, childStats, ChildrenContainer.Stats);
+                    var handled = Actor!.SupervisorStrategyInternal.HandleFailure(this, failedChild, f.Cause, childStats, ChildrenContainer.Stats);
                     if (!handled)
                         ExceptionDispatchInfo.Capture(f.Cause).Throw();
                 }
                 else
                 {
-                    Publish(new Debug(_self.Path.ToString(), Actor.GetType(), "Dropping Failed(" + f.Cause + ") from old child " + f.Child + " (uid=" + statsUid + " != " + f.Uid + ")"));
+                    Publish(new Debug(_self.Path.ToString(), Actor?.GetType(), "Dropping Failed(" + f.Cause + ") from old child " + f.Child + " (uid=" + statsUid + " != " + f.Uid + ")"));
                 }
             }
             else
             {
-                Publish(new Debug(_self.Path.ToString(), Actor.GetType(), "Dropping Failed(" + f.Cause + ") from unknown child " + failedChild));
+                Publish(new Debug(_self.Path.ToString(), Actor?.GetType(), "Dropping Failed(" + f.Cause + ") from unknown child " + failedChild));
             }
         }
 
@@ -439,7 +439,7 @@ namespace Akka.Actor
             // then we are continuing the previously suspended recreate/create/terminate action
             if (status is SuspendReason.Recreation recreation)
             {
-                FinishRecreate(recreation.Cause, Actor);
+                FinishRecreate(recreation.Cause, Actor!);
             }
             else if (status is SuspendReason.Creation)
             {

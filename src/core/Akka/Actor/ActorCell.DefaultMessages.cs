@@ -182,12 +182,12 @@ namespace Akka.Actor
             if (message is IScheduledTellMsg scheduled)
                 message = scheduled.Message;
             
-            var wasHandled = Actor.AroundReceive(_state.GetCurrentBehavior(), message);
+            var wasHandled = Actor!.AroundReceive(_state.GetCurrentBehavior(), message);
 
             if (System.Settings.AddLoggingReceive && Actor is ILogReceive)
             {
                 //TODO: akka alters the receive handler for logging, but the effect is the same. keep it this way?
-                var msg = "received " + (wasHandled ? "handled" : "unhandled") + " message " + message + " from " + Sender.Path;
+                var msg = "received " + (wasHandled ? "handled" : "unhandled") + " message " + message + " from " + Sender?.Path;
                 Publish(new Debug(Self.Path.ToString(), Actor.GetType(), msg));
             }
         }
@@ -207,7 +207,7 @@ namespace Akka.Actor
         private int CalculateState()
         {
             if(IsWaitingForChildren) return SuspendedWaitForChildrenState;
-            if(Mailbox.IsSuspended()) return SuspendedState;
+            if(Mailbox!.IsSuspended()) return SuspendedState;
             return DefaultState;
         }
 
@@ -286,7 +286,7 @@ namespace Akka.Actor
                             Supervise(s.Child, s.Async);
                             break;
                         default:
-                            throw new NotSupportedException($"Unknown message {message.GetType().Name}");
+                            throw new NotSupportedException($"Unknown message {message!.GetType().Name}");
                     }
                 }
                 catch (Exception cause)
@@ -347,7 +347,7 @@ namespace Akka.Actor
         /// </summary>
         /// <param name="mailbox">TBD</param>
         /// <returns>TBD</returns>
-        internal Mailbox SwapMailbox(Mailbox mailbox)
+        internal Mailbox? SwapMailbox(Mailbox mailbox)
         {
             Mailbox.DebugPrint("{0} Swapping mailbox to {1}", Self, mailbox);
             var ret = _mailboxDoNotCallMeDirectly;
@@ -445,7 +445,7 @@ namespace Akka.Actor
             return new ActorStopped(Self, Props.Type);
         }
 
-        private void Create(Exception failure)
+        private void Create(Exception? failure)
         {
             if (failure != null)
                 throw failure;
