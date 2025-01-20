@@ -161,8 +161,7 @@ namespace Akka.Actor.Internal
             if (InternalChildren.TryGetValue(actor.Path.Name, out var stats))
             {
                 //Since the actor exists, ChildRestartStats is the only valid ChildStats.
-                var crStats = stats as ChildRestartStats;
-                if (crStats != null && actor.Equals(crStats.Child))
+                if (stats is ChildRestartStats crStats && actor.Equals(crStats.Child))
                 {
                     childRestartStats = crStats;
                     return true;
@@ -188,19 +187,18 @@ namespace Akka.Actor.Internal
         /// <param name="sb">TBD</param>
         /// <param name="kvp">TBD</param>
         /// <param name="index">TBD</param>
-        protected void ChildStatsAppender(StringBuilder sb, KeyValuePair<string, IChildStats> kvp, int index)
+        protected static void ChildStatsAppender(StringBuilder sb, KeyValuePair<string, IChildStats> kvp, int index)
         {
             sb.Append('<');
             var childStats = kvp.Value;
-            var childRestartStats = childStats as ChildRestartStats;
-            if (childRestartStats != null)
+            if (childStats is ChildRestartStats childRestartStats)
             {
                 sb.Append(childRestartStats.Child.Path.ToStringWithUid()).Append(':');
                 sb.Append(childRestartStats.MaxNrOfRetriesCount).Append(" retries>");
             }
             else
             {
-                sb.Append(kvp.Key).Append(":").Append(childStats).Append('>');
+                sb.Append(kvp.Key).Append(':').Append(childStats).Append('>');
             }
         }
     }
