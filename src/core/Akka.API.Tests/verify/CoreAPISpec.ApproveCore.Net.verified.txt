@@ -59,12 +59,14 @@ namespace Akka.Actor
         protected virtual void Unhandled(object message) { }
     }
     [System.Diagnostics.DebuggerDisplayAttribute("{Self,nq}")]
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public class ActorCell : Akka.Actor.IActorContext, Akka.Actor.IActorRefFactory, Akka.Actor.ICanWatch, Akka.Actor.ICell, Akka.Actor.IUntypedActorContext
     {
         public const int UndefinedUid = 0;
         public ActorCell(Akka.Actor.Internal.ActorSystemImpl system, Akka.Actor.IInternalActorRef self, Akka.Actor.Props props, Akka.Dispatch.MessageDispatcher dispatcher, Akka.Actor.IInternalActorRef parent) { }
         public Akka.Actor.Internal.IChildrenContainer ChildrenContainer { get; }
         public int CurrentEnvelopeId { get; }
+        [System.Runtime.CompilerServices.NullableAttribute(2)]
         public object CurrentMessage { get; }
         public Akka.Dispatch.MessageDispatcher Dispatcher { get; }
         public bool HasMessages { get; }
@@ -72,22 +74,24 @@ namespace Akka.Actor
         protected bool IsNormal { get; }
         public bool IsTerminated { get; }
         protected bool IsTerminating { get; }
+        [System.Runtime.CompilerServices.NullableAttribute(2)]
         public Akka.Dispatch.Mailbox Mailbox { get; }
         public int NumberOfMessages { get; }
         public Akka.Actor.IInternalActorRef Parent { get; }
         public Akka.Actor.Props Props { get; }
         public System.Nullable<System.TimeSpan> ReceiveTimeout { get; }
         public Akka.Actor.IActorRef Self { get; }
+        [System.Runtime.CompilerServices.NullableAttribute(2)]
         public Akka.Actor.IActorRef Sender { get; }
         public Akka.Actor.ActorSystem System { get; }
         public Akka.Actor.Internal.ActorSystemImpl SystemImpl { get; }
         public virtual Akka.Dispatch.ActorTaskScheduler TaskScheduler { get; }
-        public virtual Akka.Actor.IActorRef ActorOf(Akka.Actor.Props props, string name = null) { }
+        public virtual Akka.Actor.IActorRef ActorOf(Akka.Actor.Props props, [System.Runtime.CompilerServices.NullableAttribute(2)] string name = null) { }
         public Akka.Actor.ActorSelection ActorSelection(string path) { }
         public Akka.Actor.ActorSelection ActorSelection(Akka.Actor.ActorPath path) { }
         protected void AddWatcher(Akka.Actor.IActorRef watchee, Akka.Actor.IActorRef watcher) { }
         protected void AddressTerminated(Akka.Actor.Address address) { }
-        public virtual Akka.Actor.IActorRef AttachChild(Akka.Actor.Props props, bool isSystemService, string name = null) { }
+        public virtual Akka.Actor.IActorRef AttachChild(Akka.Actor.Props props, bool isSystemService, [System.Runtime.CompilerServices.NullableAttribute(2)] string name = null) { }
         protected virtual void AutoReceiveMessage(Akka.Actor.Envelope envelope) { }
         public void Become(Akka.Actor.Receive receive) { }
         public void BecomeStacked(Akka.Actor.Receive receive) { }
@@ -105,6 +109,7 @@ namespace Akka.Actor
         public static Akka.Actor.IActorRef GetCurrentSenderOrNoSender() { }
         public Akka.Actor.IInternalActorRef GetSingleChild(string name) { }
         public void Init(bool sendSupervise, Akka.Dispatch.MailboxType mailboxType) { }
+        [return: System.Runtime.CompilerServices.NullableAttribute(2)]
         public Akka.Actor.Internal.ChildRestartStats InitChild(Akka.Actor.IInternalActorRef actor) { }
         public void Invoke(Akka.Actor.Envelope envelope) { }
         protected virtual void PreStart() { }
@@ -113,6 +118,7 @@ namespace Akka.Actor
         public void ReceiveMessageForTest(Akka.Actor.Envelope envelope) { }
         protected void ReceivedTerminated(Akka.Actor.Terminated t) { }
         protected void RemWatcher(Akka.Actor.IActorRef watchee, Akka.Actor.IActorRef watcher) { }
+        [return: System.Runtime.CompilerServices.NullableAttribute(2)]
         protected Akka.Actor.Internal.SuspendReason RemoveChildAndGetStateChange(Akka.Actor.IActorRef child) { }
         public void ReserveChild(string name) { }
         public void Restart(System.Exception cause) { }
@@ -120,7 +126,7 @@ namespace Akka.Actor
         public virtual void SendMessage(Akka.Actor.Envelope message) { }
         public virtual void SendMessage(Akka.Actor.IActorRef sender, object message) { }
         public virtual void SendSystemMessage(Akka.Dispatch.SysMsg.ISystemMessage systemMessage) { }
-        protected void SetActorFields(Akka.Actor.ActorBase actor) { }
+        protected static void SetActorFields(Akka.Actor.ActorBase actor) { }
         protected bool SetChildrenTerminationReason(Akka.Actor.Internal.SuspendReason reason) { }
         public void SetReceiveTimeout(System.Nullable<System.TimeSpan> timeout = null) { }
         protected void SetTerminated() { }
@@ -2058,7 +2064,7 @@ namespace Akka.Actor.Internal
         public virtual bool IsTerminating { get; }
         public System.Collections.Generic.IReadOnlyCollection<Akka.Actor.Internal.ChildRestartStats> Stats { get; }
         public abstract Akka.Actor.Internal.IChildrenContainer Add(string name, Akka.Actor.Internal.ChildRestartStats stats);
-        protected void ChildStatsAppender(System.Text.StringBuilder sb, System.Collections.Generic.KeyValuePair<string, Akka.Actor.Internal.IChildStats> kvp, int index) { }
+        protected static void ChildStatsAppender(System.Text.StringBuilder sb, System.Collections.Generic.KeyValuePair<string, Akka.Actor.Internal.IChildStats> kvp, int index) { }
         public bool Contains(Akka.Actor.IActorRef actor) { }
         public abstract Akka.Actor.Internal.IChildrenContainer Remove(Akka.Actor.IActorRef child);
         public abstract Akka.Actor.Internal.IChildrenContainer Reserve(string name);
@@ -2116,6 +2122,7 @@ namespace Akka.Actor.Internal
     {
         public static Akka.Actor.Internal.InternalActivateFsmLogging Instance { get; }
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public class static InternalCurrentActorCellKeeper
     {
         public static Akka.Actor.ActorCell Current { get; set; }
