@@ -3303,6 +3303,7 @@ namespace Akka.Event
         public Akka.Actor.IActorRef Sender { get; }
         public override string ToString() { }
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public sealed class BusLogging : Akka.Event.LoggingAdapterBase
     {
         public BusLogging(Akka.Event.LoggingBus bus, string logSource, System.Type logClass, Akka.Event.ILogMessageFormatter logMessageFormatter) { }
@@ -3332,6 +3333,7 @@ namespace Akka.Event
     {
         public Debug(string logSource, System.Type logClass, object message) { }
         public Debug(System.Exception cause, string logSource, System.Type logClass, object message) { }
+        public Debug(System.Exception cause, string logSource, System.Type logClass, object message, ref System.Diagnostics.ActivityContext context) { }
         public override Akka.Event.LogLevel LogLevel() { }
     }
     public class DefaultLogMessageFormatter : Akka.Event.ILogMessageFormatter
@@ -3359,6 +3361,7 @@ namespace Akka.Event
     public class Error : Akka.Event.LogEvent
     {
         public Error(System.Exception cause, string logSource, System.Type logClass, object message) { }
+        public Error(System.Exception cause, string logSource, System.Type logClass, object message, ref System.Diagnostics.ActivityContext context) { }
         public override Akka.Event.LogLevel LogLevel() { }
     }
     public abstract class EventBus<TEvent, TClassifier, TSubscriber>
@@ -3417,6 +3420,7 @@ namespace Akka.Event
     {
         public Info(string logSource, System.Type logClass, object message) { }
         public Info(System.Exception cause, string logSource, System.Type logClass, object message) { }
+        public Info(System.Exception cause, string logSource, System.Type logClass, object message, ref System.Diagnostics.ActivityContext context) { }
         public override Akka.Event.LogLevel LogLevel() { }
     }
     public class InitializeLogger : Akka.Actor.INoSerializationVerificationNeeded
@@ -3424,9 +3428,12 @@ namespace Akka.Event
         public InitializeLogger(Akka.Event.LoggingBus loggingBus) { }
         public Akka.Event.LoggingBus LoggingBus { get; }
     }
+    [System.Runtime.CompilerServices.NullableAttribute(0)]
     public abstract class LogEvent : Akka.Actor.INoSerializationVerificationNeeded
     {
         protected LogEvent() { }
+        public System.Diagnostics.ActivityContext ActivityContext { get; set; }
+        [System.Runtime.CompilerServices.NullableAttribute(2)]
         public System.Exception Cause { get; set; }
         public System.Type LogClass { get; set; }
         public string LogSource { get; set; }
@@ -3704,6 +3711,7 @@ namespace Akka.Event
     {
         public Warning(string logSource, System.Type logClass, object message) { }
         public Warning(System.Exception cause, string logSource, System.Type logClass, object message) { }
+        public Warning(System.Exception cause, string logSource, System.Type logClass, object message, ref System.Diagnostics.ActivityContext context) { }
         public override Akka.Event.LogLevel LogLevel() { }
     }
 }
