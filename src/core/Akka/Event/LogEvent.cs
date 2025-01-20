@@ -7,8 +7,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using Akka.Actor;
+using Microsoft.Extensions.ObjectPool;
 
 namespace Akka.Event
 {
@@ -35,6 +38,11 @@ namespace Akka.Event
         {
             return PrettyPrintedLogLevel[level];
         }
+        
+        /// <summary>
+        /// For formatting the <see cref="LogEvent"/> instances.
+        /// </summary>
+        public static readonly ObjectPool<StringBuilder> StringBuilderPool = new DefaultObjectPoolProvider().CreateStringBuilderPool(10, 1024);
     }
 
     /// <summary>
@@ -86,6 +94,15 @@ namespace Akka.Event
         /// </summary>
         /// <returns>The <see cref="Akka.Event.LogLevel" /> used to classify this event.</returns>
         public abstract LogLevel LogLevel();
+        
+        /// <summary>
+        /// Used to help correlate Akka.NET logs with OpenTelemetry traces.
+        /// </summary>
+        /// <remarks>
+        /// Works best in combination with manual instrumentation of Akka.NET actors or
+        /// <see href="https://phobos.petabridge.com/"/> for automatic instrumentation.
+        /// </remarks>
+        public ActivityContext ActivityContext { get; protected set; }
 
         /// <summary>
         /// Returns a <see cref="string" /> that represents this LogEvent.
@@ -93,9 +110,37 @@ namespace Akka.Event
         /// <returns>A <see cref="string" /> that represents this LogEvent.</returns>
         public override string ToString()
         {
-            return Cause == null
-                ? $"[{LogLevel().PrettyNameFor()}][{Timestamp:MM/dd/yyyy HH:mm:ss.fffK}][Thread {Thread.ManagedThreadId:0000}][{LogSource}] {Message}"
-                : $"[{LogLevel().PrettyNameFor()}][{Timestamp:MM/dd/yyyy HH:mm:ss.fffK}][Thread {Thread.ManagedThreadId:0000}][{LogSource}] {Message}{Environment.NewLine}Cause: {Cause}";
+            return FormatLog(this);
+        }
+
+        private static string FormatLog(LogEvent log)
+        {
+            var stringBuilder = LogFormats.StringBuilderPool.Get();
+            try
+            {
+                // loglevel and timestamp go first followed by thread id and log source
+                stringBuilder.AppendFormat("[{0}][{1:MM/dd/yyyy HH:mm:ss.fffK}][Thread {2:0000}][{3}]", log.LogLevel().PrettyNameFor(),
+                    log.Timestamp, log.Thread.ManagedThreadId, log.LogSource);
+            
+                // next: we do the OpenTelemetry ActivityContext, if it's present
+                if(log.ActivityContext != default)
+                {
+                    stringBuilder.AppendFormat("[TraceId={0}, SpanId={1}, TraceFlags={2}]", log.ActivityContext.TraceId.ToHexString(), log.ActivityContext.SpanId.ToHexString(), log.ActivityContext.TraceFlags);
+                }
+            
+                // then the message
+                stringBuilder.Append(' ').Append(log.Message);
+                if(log.Cause != null)
+                {
+                    stringBuilder.AppendLine().Append("Cause: ").Append(log.Cause);
+                }
+                
+                return stringBuilder.ToString();
+            }
+            finally
+            {
+                LogFormats.StringBuilderPool.Return(stringBuilder);
+            }
         }
     }
 }
