@@ -141,7 +141,7 @@ namespace Akka.Actor
                 0,
                 1})] Akka.Util.Option<object> customMessage) { }
         public bool TryGetChildStatsByName(string name, out Akka.Actor.Internal.IChildStats child) { }
-        protected bool TryGetChildStatsByRef(Akka.Actor.IActorRef actor, out Akka.Actor.Internal.ChildRestartStats child) { }
+        protected bool TryGetChildStatsByRef(Akka.Actor.IActorRef actor, [System.Runtime.CompilerServices.NullableAttribute(2)] out Akka.Actor.Internal.ChildRestartStats child) { }
         public void UnbecomeStacked() { }
         protected void UnreserveChild(string name) { }
         public Akka.Actor.IActorRef Unwatch(Akka.Actor.IActorRef subject) { }
@@ -324,6 +324,7 @@ namespace Akka.Actor
     }
     public class static ActorRefs
     {
+        [System.Runtime.CompilerServices.NullableAttribute(2)]
         public static readonly Akka.Actor.IActorRef NoSender;
         public static readonly Akka.Actor.Nobody Nobody;
     }
@@ -2070,7 +2071,7 @@ namespace Akka.Actor.Internal
         public abstract Akka.Actor.Internal.IChildrenContainer Reserve(string name);
         public abstract Akka.Actor.Internal.IChildrenContainer ShallDie(Akka.Actor.IActorRef actor);
         public bool TryGetByName(string name, out Akka.Actor.Internal.IChildStats stats) { }
-        public bool TryGetByRef(Akka.Actor.IActorRef actor, out Akka.Actor.Internal.ChildRestartStats childRestartStats) { }
+        public bool TryGetByRef(Akka.Actor.IActorRef actor, [System.Runtime.CompilerServices.NullableAttribute(2)] out Akka.Actor.Internal.ChildRestartStats childRestartStats) { }
         public abstract Akka.Actor.Internal.IChildrenContainer Unreserve(string name);
     }
     public class EmptyChildrenContainer : Akka.Actor.Internal.IChildrenContainer
@@ -2104,7 +2105,7 @@ namespace Akka.Actor.Internal
         Akka.Actor.Internal.IChildrenContainer Reserve(string name);
         Akka.Actor.Internal.IChildrenContainer ShallDie(Akka.Actor.IActorRef actor);
         bool TryGetByName(string name, out Akka.Actor.Internal.IChildStats stats);
-        bool TryGetByRef(Akka.Actor.IActorRef actor, out Akka.Actor.Internal.ChildRestartStats stats);
+        bool TryGetByRef(Akka.Actor.IActorRef actor, [System.Runtime.CompilerServices.NullableAttribute(2)] out Akka.Actor.Internal.ChildRestartStats stats);
         Akka.Actor.Internal.IChildrenContainer Unreserve(string name);
     }
     public interface IInitializableActor
@@ -5642,7 +5643,9 @@ namespace Akka.Util.Internal
         public static void AddOrSet<TKey, TValue>(this System.Collections.Generic.IDictionary<TKey, TValue> hash, TKey key, TValue value) { }
         public static T AsInstanceOf<T>(this object self) { }
         public static string BetweenDoubleQuotes(this string self) { }
-        public static System.Collections.Generic.IEnumerable<T> Concat<T>(this System.Collections.Generic.IEnumerable<T> enumerable, T item) { }
+        public static System.Collections.Generic.IEnumerable<T> Concat<[System.Runtime.CompilerServices.NullableAttribute(2)]  T>([System.Runtime.CompilerServices.NullableAttribute(new byte[] {
+                2,
+                1})] this System.Collections.Generic.IEnumerable<T> enumerable, T item) { }
         public static System.Collections.Generic.IEnumerable<T> Drop<T>(this System.Collections.Generic.IEnumerable<T> self, int count) { }
         public static void ForEach<T>(this System.Collections.Generic.IEnumerable<T> source, System.Action<T> action) { }
         public static TValue GetOrElse<TKey, TValue>(this System.Collections.Generic.IDictionary<TKey, TValue> hash, TKey key, TValue elseValue) { }
