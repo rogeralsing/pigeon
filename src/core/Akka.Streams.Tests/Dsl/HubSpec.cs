@@ -277,32 +277,32 @@ namespace Akka.Streams.Tests.Dsl
             }, Materializer);
         }
 
-         [Fact]
+        [Fact]
         public async Task MergeHub_must_not_log_normal_shutdown_exception()
         {
             await this.AssertAllStagesStoppedAsync(async () =>
             {
-                var (sink, task) = MergeHub.Source<int>(16).Take(10).ToMaterialized(Sink.Seq<int>(), Keep.Both).Run(Materializer);
+                var (sink, task) = MergeHub.Source<int>(16).Take(10).ToMaterialized(Sink.Seq<int>(), Keep.Both)
+                    .Run(Materializer);
 
                 await WithinAsync(10.Seconds(), async () =>
                 {
                     await EventFilter
-                        .Custom((e) => 
-                        { 
-                            if (e.Cause?.InnerException is NormalShutdownException nse && nse == ActorPublisher.NormalShutdownReason)
+                        .Custom((e) =>
+                        {
+                            if (e.Cause?.InnerException is NormalShutdownException nse &&
+                                nse == ActorPublisher.NormalShutdownReason)
                                 return true;
-                            else 
+                            else
                                 return false;
                         })
-                        
-                    // await EventFilter.Error(contains: ActorPublisher.NormalShutdownReasonMessage)
                         .ExpectAsync(0, async () =>
-                    {
-                        Source.Failed<int>(ActorPublisher.NormalShutdownReason).RunWith(sink, Materializer);
-                        Source.From(Enumerable.Range(1, 10)).RunWith(sink, Materializer);
-                        var result = await task.ShouldCompleteWithin(3.Seconds());
-                        result.Should().BeEquivalentTo(Enumerable.Range(1, 10));
-                    });
+                        {
+                            Source.Failed<int>(ActorPublisher.NormalShutdownReason).RunWith(sink, Materializer);
+                            Source.From(Enumerable.Range(1, 10)).RunWith(sink, Materializer);
+                            var result = await task.ShouldCompleteWithin(3.Seconds());
+                            result.Should().BeEquivalentTo(Enumerable.Range(1, 10));
+                        });
                 });
             }, Materializer);
         }
