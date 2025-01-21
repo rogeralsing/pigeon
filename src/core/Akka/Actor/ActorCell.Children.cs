@@ -141,11 +141,9 @@ namespace Akka.Actor
         /// <param name="child">The child.</param>
         public void Stop(IActorRef child)
         {
-            ChildRestartStats stats;
-            if (ChildrenContainer.TryGetByRef(child, out stats))
+            if (ChildrenContainer.TryGetByRef(child, out _))
             {
-                var repointableActorRef = child as RepointableActorRef;
-                if (repointableActorRef == null || repointableActorRef.IsStarted)
+                if (child is not RepointableActorRef repointableActorRef || repointableActorRef.IsStarted)
                 {
                     while (true)
                     {

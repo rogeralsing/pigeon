@@ -441,7 +441,7 @@ namespace Akka.Actor
         /// <summary>
         /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
         /// </summary>
-        protected virtual ActorStarted CreateActorStartedEvent()
+        protected virtual ActorStarted? CreateActorStartedEvent()
         {
             return new ActorStarted(Self, Props.Type);
         }
@@ -449,7 +449,7 @@ namespace Akka.Actor
         /// <summary>
         /// Overrideable in order to support issues such as https://github.com/petabridge/phobos-issues/issues/82
         /// </summary>
-        protected virtual ActorStopped CreateActorStoppedEvent()
+        protected virtual ActorStopped? CreateActorStoppedEvent()
         {
             return new ActorStopped(Self, Props.Type);
         }
@@ -466,8 +466,13 @@ namespace Akka.Actor
                 CheckReceiveTimeout();
                 if (System.Settings.DebugLifecycle)
                     Publish(new Debug(Self.Path.ToString(), created.GetType(), "Started (" + created + ")"));
-                if(System.Settings.EmitActorTelemetry)
-                    System.EventStream.Publish(CreateActorStartedEvent());
+                if (System.Settings.EmitActorTelemetry)
+                {
+                    var actorStarted = CreateActorStartedEvent();
+                    if(actorStarted != null)
+                        System.EventStream.Publish(actorStarted);
+                }
+                   
             }
             catch (Exception e)
             {

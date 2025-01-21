@@ -98,6 +98,7 @@ namespace Akka.Actor
         public void CheckReceiveTimeout(bool reschedule = True) { }
         protected void ClearActor(Akka.Actor.ActorBase actor) { }
         protected void ClearActorCell() { }
+        [return: System.Runtime.CompilerServices.NullableAttribute(2)]
         protected virtual Akka.Actor.ActorRestarted CreateActorRestartedEvent(System.Exception cause) { }
         protected virtual Akka.Actor.ActorStarted CreateActorStartedEvent() { }
         protected virtual Akka.Actor.ActorStopped CreateActorStoppedEvent() { }
