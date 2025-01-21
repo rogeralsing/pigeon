@@ -8,6 +8,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -36,10 +37,10 @@ namespace Akka.Actor
         }
 
         private ImmutableDictionary<string, FunctionRef> FunctionRefs => Volatile.Read(ref _functionRefsDoNotCallMeDirectly);
-        internal bool TryGetFunctionRef(string name, out FunctionRef? functionRef) =>
+        internal bool TryGetFunctionRef(string name, [NotNullWhen(true)]out FunctionRef? functionRef) =>
             FunctionRefs.TryGetValue(name, out functionRef);
 
-        internal bool TryGetFunctionRef(string name, int uid, out FunctionRef? functionRef) =>
+        internal bool TryGetFunctionRef(string name, int uid, [NotNullWhen(true)]out FunctionRef? functionRef) =>
             FunctionRefs.TryGetValue(name, out functionRef) && (uid == ActorCell.UndefinedUid || uid == functionRef.Path.Uid);
 
         internal FunctionRef AddFunctionRef(Action<IActorRef, object> tell, string suffix = "")
@@ -318,7 +319,7 @@ namespace Akka.Actor
         /// <summary>
         /// Tries to get the stats for the child with the specified name. This ignores children for whom only names have been reserved.
         /// </summary>
-        private bool TryGetChildRestartStatsByName(string name, out ChildRestartStats? child)
+        private bool TryGetChildRestartStatsByName(string name, [NotNullWhen(true)] out ChildRestartStats? child)
         {
             if (ChildrenContainer.TryGetByName(name, out var stats))
             {
@@ -337,7 +338,7 @@ namespace Akka.Actor
         /// <param name="actor">TBD</param>
         /// <param name="child">TBD</param>
         /// <returns>TBD</returns>
-        protected bool TryGetChildStatsByRef(IActorRef actor, out ChildRestartStats child)   //This is called getChildByRef in Akka JVM
+        protected bool TryGetChildStatsByRef(IActorRef actor, [NotNullWhen(true)] out ChildRestartStats? child)   //This is called getChildByRef in Akka JVM
         {
             return ChildrenContainer.TryGetByRef(actor, out child);
         }
@@ -361,20 +362,20 @@ namespace Akka.Actor
 
                 if (TryGetFunctionRef(name, out var functionRef))
                 {
-                    return functionRef!;
+                    return functionRef;
                 }
             }
             else
             {
                 var (s, uid) = GetNameAndUid(name);
-                if (TryGetChildRestartStatsByName(s, out var stats) && (uid == UndefinedUid || uid == stats?.Uid))
+                if (TryGetChildRestartStatsByName(s, out var stats) && (uid == UndefinedUid || uid == stats.Uid))
                 {
-                    return stats!.Child;
+                    return stats.Child;
                 }
 
                 if (TryGetFunctionRef(s, uid, out var functionRef))
                 {
-                    return functionRef!;
+                    return functionRef;
                 }
             }
             return ActorRefs.Nobody;

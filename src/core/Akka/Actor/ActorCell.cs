@@ -7,6 +7,7 @@
 #nullable enable
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Akka.Actor.Internal;
 using Akka.Dispatch;
@@ -112,7 +113,14 @@ namespace Akka.Actor
         /// <summary>
         /// Indicates whether the actor is currently terminated.
         /// </summary>
-        public bool IsTerminated => Mailbox!.IsClosed();
+        public bool IsTerminated
+        {
+            get
+            {
+                Assert.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null when {nameof(IsTerminated)} property is accessed");
+                return Mailbox!.IsClosed();
+            }
+        }
         
         /// <summary>
         /// A static reference to the current actor cell.
@@ -162,12 +170,24 @@ namespace Akka.Actor
         /// <summary>
         /// Will return <c>true</c> if <see cref="NumberOfMessages"/> is greater than zero.
         /// </summary>
-        public bool HasMessages { get { return Mailbox!.HasMessages; } }
+        public bool HasMessages {
+            get
+            {
+                Assert.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null when {nameof(HasMessages)} property is accessed");
+                return Mailbox!.HasMessages;
+            }
+        }
         
         /// <summary>
         /// Current message count inside the mailbox.
         /// </summary>
-        public int NumberOfMessages { get { return Mailbox!.NumberOfMessages; } }
+        public int NumberOfMessages {
+            get
+            {
+                Assert.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null when {nameof(NumberOfMessages)} property is accessed");
+                return Mailbox!.NumberOfMessages;
+            } 
+        }
         
         /// <summary>
         /// Indicates if we've been cleared after a restart.
@@ -236,6 +256,7 @@ namespace Akka.Actor
             }
 
             SwapMailbox(mailbox);
+            Assert.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null after {nameof(SwapMailbox)} has been invoked");
             Mailbox!.SetActor(this);
 
             //// ➡➡➡ NEVER SEND THE SAME SYSTEM MESSAGE OBJECT TO TWO ACTORS ⬅⬅⬅
@@ -372,7 +393,7 @@ namespace Akka.Actor
             });
 
 
-            Assert.Assert(instance != null, (string)(nameof(instance) + " != null"));
+            Assert.Assert(instance != null, $"{nameof(instance)} should never be null at this point");
             return instance!;
         }
 
@@ -534,7 +555,7 @@ namespace Akka.Actor
         /// TBD
         /// </summary>
         /// <returns>TBD</returns>
-        public static IActorRef GetCurrentSelfOrNoSender()
+        public static IActorRef? GetCurrentSelfOrNoSender()
         {
             var current = Current;
             return current != null ? current.Self : ActorRefs.NoSender;
@@ -543,7 +564,7 @@ namespace Akka.Actor
         /// <summary>
         /// Gets the current sender or <see cref="ActorRefs.NoSender"/>
         /// </summary>
-        public static IActorRef GetCurrentSenderOrNoSender()
+        public static IActorRef? GetCurrentSenderOrNoSender()
         {
             var current = Current;
             return current?.Sender ?? ActorRefs.NoSender;
@@ -570,7 +591,8 @@ namespace Akka.Actor
             }
             catch (Exception e)
             {
-                throw new SerializationException($"Failed to serialize and deserialize payload object [{unwrapped.GetType()}]. Envelope: [{envelope}], Actor type: [{Actor?.GetType()}]", e);
+                Assert.Assert(Actor != null, $"{nameof(Actor)} should never be null at this point");
+                throw new SerializationException($"Failed to serialize and deserialize payload object [{unwrapped.GetType()}]. Envelope: [{envelope}], Actor type: [{Actor!.GetType()}]", e);
             }
 
             // Check that this message was ever wrapped

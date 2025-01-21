@@ -8,6 +8,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -156,7 +157,8 @@ namespace Akka.Actor.Internal
         /// <param name="actor">TBD</param>
         /// <param name="childRestartStats">TBD</param>
         /// <returns>TBD</returns>
-        public bool TryGetByRef(IActorRef actor, out ChildRestartStats childRestartStats)
+        #nullable enable
+        public bool TryGetByRef(IActorRef actor, [NotNullWhen(true)] out ChildRestartStats? childRestartStats)
         {
             if (InternalChildren.TryGetValue(actor.Path.Name, out var stats))
             {
@@ -170,6 +172,7 @@ namespace Akka.Actor.Internal
             childRestartStats = null;
             return false;
         }
+        #nullable restore
 
         /// <summary>
         /// TBD

@@ -81,7 +81,8 @@ namespace Akka.Actor
                     ClearActor(Actor);
                 }
 
-                global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), "Mailbox must be suspended during restart, status=" + Mailbox.CurrentStatus());
+                global::System.Diagnostics.Debug.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null at this point");
+                global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), $"{nameof(Mailbox)} must be suspended during restart, status=" + Mailbox.CurrentStatus());
                 if (!SetChildrenTerminationReason(new SuspendReason.Recreation(cause)))
                 {
                     FinishRecreate(cause, failedActor);
@@ -144,8 +145,9 @@ namespace Akka.Actor
         /// </summary>
         private void FaultCreate()
         {
-            global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), "Mailbox must be suspended during failed creation, status=" + Mailbox.CurrentStatus());
-            global::System.Diagnostics.Debug.Assert(_self.Equals(Perpetrator), "Perpetrator should be self");
+            global::System.Diagnostics.Debug.Assert(Mailbox != null, $"{nameof(Mailbox)} should never be null at this point");
+            global::System.Diagnostics.Debug.Assert(Mailbox!.IsSuspended(), $"{nameof(Mailbox)} must be suspended during failed creation, status=" + Mailbox.CurrentStatus());
+            global::System.Diagnostics.Debug.Assert(_self.Equals(Perpetrator), $"{nameof(Perpetrator)} should be self");
 
             SetReceiveTimeout(null);
             CancelReceiveTimeout();
@@ -330,7 +332,7 @@ namespace Akka.Actor
             }
         }
 
-        private void FinishRecreate(Exception cause, ActorBase failedActor)
+        private void FinishRecreate(Exception cause, ActorBase? failedActor)
         {
             // need to keep a snapshot of the surviving children before the new actor instance creates new ones
             var survivors = ChildrenContainer.Children;
@@ -391,6 +393,7 @@ namespace Akka.Actor
             //the UID protects against reception of a Failed from a child which was
             //killed in preRestart and re-created in postRestart
 
+            global::System.Diagnostics.Debug.Assert(Actor != null, $"{nameof(Actor)} should never be null at this point");
             if (TryGetChildStatsByRef(failedChild, out var childStats))
             {
                 var statsUid = childStats.Child.Path.Uid;
@@ -402,12 +405,12 @@ namespace Akka.Actor
                 }
                 else
                 {
-                    Publish(new Debug(_self.Path.ToString(), Actor?.GetType(), "Dropping Failed(" + f.Cause + ") from old child " + f.Child + " (uid=" + statsUid + " != " + f.Uid + ")"));
+                    Publish(new Debug(_self.Path.ToString(), Actor!.GetType(), "Dropping Failed(" + f.Cause + ") from old child " + f.Child + " (uid=" + statsUid + " != " + f.Uid + ")"));
                 }
             }
             else
             {
-                Publish(new Debug(_self.Path.ToString(), Actor?.GetType(), "Dropping Failed(" + f.Cause + ") from unknown child " + failedChild));
+                Publish(new Debug(_self.Path.ToString(), Actor!.GetType(), "Dropping Failed(" + f.Cause + ") from unknown child " + failedChild));
             }
         }
 
@@ -439,7 +442,7 @@ namespace Akka.Actor
             // then we are continuing the previously suspended recreate/create/terminate action
             if (status is SuspendReason.Recreation recreation)
             {
-                FinishRecreate(recreation.Cause, Actor!);
+                FinishRecreate(recreation.Cause, Actor);
             }
             else if (status is SuspendReason.Creation)
             {

@@ -226,7 +226,9 @@ namespace Akka.Actor
         /// Use this value as an argument to <see cref="ICanTell.Tell"/> if there is not actor to
         /// reply to (e.g. when sending from non-actor code).
         /// </summary>
-        public static readonly IActorRef NoSender = null;
+        #nullable enable
+        public static readonly IActorRef? NoSender = null;
+        #nullable restore
     }
 
     /// <summary>
