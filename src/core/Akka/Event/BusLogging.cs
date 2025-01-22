@@ -4,7 +4,7 @@
 //     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
-
+#nullable enable
 using System;
 using Akka.Actor;
 
@@ -72,14 +72,16 @@ namespace Akka.Event
         /// </summary>
         public override bool IsWarningEnabled { get; }
         
-        private LogEvent CreateLogEvent(LogLevel logLevel, object message, Exception cause = null)
+        private LogEvent CreateLogEvent(LogLevel logLevel, object message, Exception? cause = null)
         {
+            var currentContext = (System.Diagnostics.Activity.Current?.Context ?? default);
+            
             return logLevel switch
             {
-                LogLevel.DebugLevel => new Debug(cause, LogSource, LogClass, message),
-                LogLevel.InfoLevel => new Info(cause, LogSource, LogClass, message),
-                LogLevel.WarningLevel => new Warning(cause, LogSource, LogClass, message),
-                LogLevel.ErrorLevel => new Error(cause, LogSource, LogClass, message),
+                LogLevel.DebugLevel => new Debug(cause, LogSource, LogClass, message, currentContext),
+                LogLevel.InfoLevel => new Info(cause, LogSource, LogClass, message, currentContext),
+                LogLevel.WarningLevel => new Warning(cause, LogSource, LogClass, message, currentContext),
+                LogLevel.ErrorLevel => new Error(cause, LogSource, LogClass, message, currentContext),
                 _ => throw new ArgumentOutOfRangeException(nameof(logLevel), logLevel, null)
             };
         }
