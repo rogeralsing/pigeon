@@ -1,3 +1,7 @@
+#### 1.5.37 January 22nd 2025 ####
+
+*Placeholder for nightlies*
+
 #### 1.5.36 January 22nd 2025 ####
 
 Akka.NET v1.5.36 is a maintenance release that addresses several bugs and added several improvements.
