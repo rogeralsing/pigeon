@@ -1,6 +1,23 @@
-#### 1.5.36 January 13th 2025 ####
+#### 1.5.37 January 22nd 2025 ####
 
 *Placeholder for nightlies*
+
+#### 1.5.36 January 22nd 2025 ####
+
+Akka.NET v1.5.36 is a maintenance release that addresses several bugs and added several improvements.
+
+* [Core: Implement nullability for `ActorCell`](https://github.com/akkadotnet/akka.net/pull/7475)
+* [Core: Add filtering to `ActorCell` lifecycle metrics](https://github.com/akkadotnet/akka.net/pull/7478)
+* [Streams: Complete MergeHub Sink gracefully on graceful stop](https://github.com/akkadotnet/akka.net/pull/7468)
+
+To [see the full set of changes in Akka.NET v1.5.36, click here](https://github.com/akkadotnet/akka.net/milestone/119?closed=1).
+
+2 contributors since release 1.5.35
+
+| COMMITS | LOC+ | LOC- | AUTHOR         |
+|---------|------|------|----------------|
+| 4       | 371  | 251  | Aaron Stannard |
+| 1       | 37   | 2    | Pavel Anpin    |
 
 #### 1.5.35 January 13th 2025 ####
 

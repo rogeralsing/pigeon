@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Akka.Actor.Internal
 {
@@ -40,7 +41,9 @@ namespace Akka.Actor.Internal
         /// <param name="actor">TBD</param>
         /// <param name="stats">TBD</param>
         /// <returns>TBD</returns>
-        bool TryGetByRef(IActorRef actor, out ChildRestartStats stats);
+        #nullable enable
+        bool TryGetByRef(IActorRef actor, [NotNullWhen(true)] out ChildRestartStats? stats);
+        #nullable restore
         /// <summary>
         /// TBD
         /// </summary>
