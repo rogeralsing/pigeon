@@ -6,6 +6,7 @@
 //-----------------------------------------------------------------------
 
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -19,6 +20,43 @@ namespace Akka.IO
     // TODO: Move to Akka.Util namespace - this will require changes as name clashes with ProtoBuf class
     using ByteBuffer = ArraySegment<byte>;
 
+    public class ByteStringReadOnlySequenceSegment : ReadOnlySequenceSegment<byte>
+    {
+        public ByteStringReadOnlySequenceSegment(ReadOnlyMemory<byte> memory, long runningIndex)
+        {
+            Memory = memory;
+            RunningIndex = runningIndex;
+        }
+        public static (ByteStringReadOnlySequenceSegment first, ByteStringReadOnlySequenceSegment last) Create(ByteString bs)
+        {
+            var bArr = bs.Buffers;
+            var toMake = bArr.Count;
+            var first = new ByteStringReadOnlySequenceSegment(bArr[0],0);
+            var last = new ByteStringReadOnlySequenceSegment(bArr[toMake-1], bs.Count-bArr[toMake-1].Count);
+            if (toMake == 2)
+            {
+                first.Next = last;
+            }
+            else
+            {
+                var prior = first;
+                for (int i = 1; i < toMake-1; i++)
+                {
+                    var item = bArr[i];
+                    var curr = new ByteStringReadOnlySequenceSegment(item, prior.RunningIndex+prior.Memory.Length);
+                    prior.Next = curr;
+                    prior = curr;
+                }
+
+                prior.Next = last;
+            }
+            //var first = new ByteStringReadOnlySequenceSegment(bs, 0, 0);
+            //var last = new ByteStringReadOnlySequenceSegment(bs, bs.Count, bs.Buffers.Count - 1);
+            //first.Next = last;
+            return (first, last);
+        }
+    }
+
     /// <summary>
     /// A rope-like immutable data structure containing bytes.
     /// The goal of this structure is to reduce copying of arrays
@@ -28,6 +66,7 @@ namespace Akka.IO
     [DebuggerDisplay("(Count = {_count}, Buffers = {_buffers})")]
     public sealed class ByteString : IEquatable<ByteString>, IEnumerable<byte>
     {
+        
         #region creation methods
 
         /// <summary>
@@ -246,7 +285,7 @@ namespace Akka.IO
 
         private readonly int _count;
         private readonly ByteBuffer[] _buffers;
-
+        
         private ByteString(ByteBuffer[] buffers, int count)
         {
             _buffers = buffers;
@@ -527,6 +566,30 @@ namespace Akka.IO
             }
            
             return new ReadOnlySpan<byte>(ToArray());
+        }
+        
+        /// <summary>
+        /// Returns a ReadOnlySequence<byte/> over the contents of this ByteString.
+        /// This is not a copying operation and zero-alloc when ByteString is compact 
+        /// Otherwise N <see cref="ByteStringReadOnlySequenceSegment"/>s will be allocated
+        /// Where N is the number of arrays currently internally held by the ByteString
+        /// </summary>
+        /// <returns>A ReadOnlySpan<byte/> over the byte data.</returns>
+        public ReadOnlySequence<byte> ToReadOnlySequence()
+        {
+            if (_count == 0)
+            {
+                return ReadOnlySequence<byte>.Empty;
+            }
+            else if (_buffers.Length == 1)
+            {
+                return new ReadOnlySequence<byte>(_buffers[0]);
+            }
+            else
+            {
+                var (first, last) = ByteStringReadOnlySequenceSegment.Create(this);
+                return new ReadOnlySequence<byte>(first,0,last,last.Memory.Length);   
+            }
         }
 
         /// <summary>
