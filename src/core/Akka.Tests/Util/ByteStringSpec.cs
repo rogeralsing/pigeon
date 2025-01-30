@@ -68,7 +68,7 @@ namespace Akka.Tests.Util
             var memory = new ReadOnlyMemory<byte>(bytes);
             var spanMemory = memory.Span;
 
-            // span has memory reference to underlying byte array
+            // span has memory reference to underlying byte array 
             (aSpan == spanMemory).Should().BeTrue();
             
             // Do another ToReadOnlySpan
