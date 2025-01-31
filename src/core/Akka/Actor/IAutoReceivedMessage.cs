@@ -214,6 +214,21 @@ namespace Akka.Actor
     }
 
     /// <summary>
+    /// Sending a <see cref="Restart"/> message will force it to throw a <see cref="IntentionalActorRestartException"/>
+    /// when it processes the message.
+    /// </summary>
+    public sealed class Restart : IAutoReceivedMessage
+    {
+        private Restart() { }
+        public static Restart Instance { get; } = new();
+        
+        public override string ToString()
+        {
+            return "<Restart>";
+        }
+    }
+
+    /// <summary>
     /// Sending an <see cref="Kill"/> message to an actor causes the actor to throw an 
     /// <see cref="ActorKilledException"/> when it processes the message, which gets handled using the normal supervisor mechanism.
     /// <para>See also <see cref="PoisonPill"/> which causes the actor to stop when the <see cref="PoisonPill"/>

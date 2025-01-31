@@ -28,6 +28,7 @@ namespace Akka.Remote.Serialization
         private const string ActorRefManifest = "AR";
         private const string PoisonPillManifest = "PP";
         private const string KillManifest = "K";
+        private const string RestartManifest = "R";
         private const string RemoteWatcherHearthbeatManifest = "RWHB";
         private const string RemoteWatcherHearthbeatRspManifest = "RWHR";
         private const string LocalScopeManifest = "LS";
@@ -74,6 +75,7 @@ namespace Akka.Remote.Serialization
                 case PoisonPill _:
                 case Kill _:
                 case RemoteWatcher.Heartbeat _:
+                case Restart _:
                     return EmptyBytes;
                 case RemoteWatcher.HeartbeatRsp heartbeatRsp:
                     return HeartbeatRspToProto(heartbeatRsp);
@@ -125,6 +127,8 @@ namespace Akka.Remote.Serialization
                     return PoisonPillManifest;
                 case Kill _:
                     return KillManifest;
+                case Restart _:
+                    return RestartManifest;
                 case RemoteWatcher.Heartbeat _:
                     return RemoteWatcherHearthbeatManifest;
                 case RemoteWatcher.HeartbeatRsp _:
@@ -177,6 +181,8 @@ namespace Akka.Remote.Serialization
                     return PoisonPill.Instance;
                 case KillManifest:
                     return Kill.Instance;
+                case RestartManifest:
+                    return Restart.Instance;
                 case RemoteWatcherHearthbeatManifest:
                     return RemoteWatcher.Heartbeat.Instance;
                 case RemoteWatcherHearthbeatRspManifest:
