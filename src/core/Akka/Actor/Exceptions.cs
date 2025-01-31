@@ -257,7 +257,7 @@ namespace Akka.Actor
     }
 
     /// <summary>
-    /// Thrown when an actor is sent a <see cref="Restart"/> message.
+    /// Thrown when an actor is sent a <see cref="IntentionalRestart"/> message.
     /// </summary>
     /// <remarks>
     /// Meant to be used primarily for testing purposes.

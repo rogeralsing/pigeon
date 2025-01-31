@@ -150,14 +150,14 @@ namespace Akka.Actor
                 case Kill _:
                     Kill();
                     break;
-                case Akka.Actor.Restart:
+                case Akka.Actor.IntentionalRestart:
                     TriggerIntentionalRestart();
                     break;
             }
         }
 
         /// <summary>
-        /// Done in response to receiving a <see cref="Akka.Actor.Restart"/> message.
+        /// Done in response to receiving a <see cref="IntentionalRestart"/> message.
         /// </summary>
         private static void TriggerIntentionalRestart()
         {

@@ -214,13 +214,13 @@ namespace Akka.Actor
     }
 
     /// <summary>
-    /// Sending a <see cref="Restart"/> message will force it to throw a <see cref="IntentionalActorRestartException"/>
+    /// Sending a <see cref="IntentionalRestart"/> message will force it to throw a <see cref="IntentionalActorRestartException"/>
     /// when it processes the message.
     /// </summary>
-    public sealed class Restart : IAutoReceivedMessage
+    public sealed class IntentionalRestart : IAutoReceivedMessage
     {
-        private Restart() { }
-        public static Restart Instance { get; } = new();
+        private IntentionalRestart() { }
+        public static IntentionalRestart Instance { get; } = new();
         
         public override string ToString()
         {
