@@ -153,6 +153,8 @@ namespace Akka.Tests.Util
             var compacted = concat.Compact();
             var concatSpan3 = compacted.ToReadOnlySequence();
             (concatSpan.ToArray().SequenceEqual(concatSpan3.ToArray())).Should().BeTrue();
+            
+            (concatSpan.ToArray().SequenceEqual(compacted.ToArray())).Should().BeTrue();
         }
 
         [Fact]

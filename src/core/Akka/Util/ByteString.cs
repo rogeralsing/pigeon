@@ -29,9 +29,14 @@ namespace Akka.IO
     [DebuggerDisplay("(Count = {_count}, Buffers = {_buffers})")]
     public sealed class ByteString : IEquatable<ByteString>, IEnumerable<byte>
     {
-        public class ByteStringReadOnlySequenceSegment : ReadOnlySequenceSegment<byte>
+        /// <summary>
+        /// A <see cref="ReadOnlySequenceSegment{T}"/> to encapsulate
+        /// Parts of a <see cref="ByteString"/> in a <see cref="ReadOnlySequence{T}"/>
+        /// </summary>
+        [DebuggerDisplay("(RunningIndex = {RunningIndex}, Length = {Memory.Length})}")]
+        public sealed class ByteStringReadOnlySequenceSegment : ReadOnlySequenceSegment<byte>
         {
-            public ByteStringReadOnlySequenceSegment(ReadOnlyMemory<byte> memory, long runningIndex)
+            private ByteStringReadOnlySequenceSegment(ReadOnlyMemory<byte> memory, long runningIndex)
             {
                 Memory = memory;
                 RunningIndex = runningIndex;
@@ -571,12 +576,15 @@ namespace Akka.IO
         }
         
         /// <summary>
-        /// Returns a ReadOnlySequence<byte/> over the contents of this ByteString.
+        /// Returns a <see cref="ReadOnlySequence{T}"/> of <see cref="byte"/> over the contents of this ByteString.
         /// This is not a copying operation and zero-alloc when ByteString is compact 
         /// Otherwise N <see cref="ByteStringReadOnlySequenceSegment"/>s will be allocated
         /// Where N is the number of arrays currently internally held by the ByteString
         /// </summary>
-        /// <returns>A ReadOnlySpan<byte/> over the byte data.</returns>
+        /// <returns>
+        /// A <see cref="ReadOnlySequence{T}"/> of <see cref="byte"/>
+        /// over the data in the <see cref="ByteString"/>
+        /// </returns>
         public ReadOnlySequence<byte> ToReadOnlySequence()
         {
             if (_count == 0)
