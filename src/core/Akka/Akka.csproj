@@ -24,6 +24,7 @@
     <PackageReference Include="Polyfill" Version="1.28.0" PrivateAssets="all" />
     <PackageReference Include="System.Reflection.Emit" Version="4.7.0" />
     <PackageReference Include="System.Threading.Channels" Version="$(MicrosoftLibVersion)" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="$(MicrosoftLibVersion)" />
   </ItemGroup>
   
   <ItemGroup Label="PublicAnalyzers">
