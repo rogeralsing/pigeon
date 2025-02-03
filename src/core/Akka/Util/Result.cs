@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="Result.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -137,7 +137,30 @@ namespace Akka.Util
         /// <returns>TBD</returns>
         public static Result<T> FromTask<T>(Task<T> task)
         {
-            return task.IsCanceled || task.IsFaulted ? new Result<T>(task.Exception) : new Result<T>(task.Result);
+            if(!task.IsCompleted)
+                throw new ArgumentException("Task is not completed. Result.FromTask only accepts completed tasks.", nameof(task));
+            
+            if(task.Exception is not null)
+                return new Result<T>(task.Exception);
+            
+            if (task.IsCanceled && task.Exception is null)
+            {
+                try
+                {
+                    _ = task.GetAwaiter().GetResult();
+                }
+                catch(Exception e)
+                {
+                    return new Result<T>(e);
+                }
+
+                throw new InvalidOperationException("Should never reach this line!");
+            }
+            
+            if(task.IsFaulted && task.Exception is null)
+                throw new InvalidOperationException("Should never happen! something is wrong with .NET Task code!");
+            
+            return new Result<T>(task.Result);
         }
 
         /// <summary>

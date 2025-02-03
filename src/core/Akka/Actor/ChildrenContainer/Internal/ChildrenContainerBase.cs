@@ -1,13 +1,14 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ChildrenContainerBase.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -156,13 +157,13 @@ namespace Akka.Actor.Internal
         /// <param name="actor">TBD</param>
         /// <param name="childRestartStats">TBD</param>
         /// <returns>TBD</returns>
-        public bool TryGetByRef(IActorRef actor, out ChildRestartStats childRestartStats)
+        #nullable enable
+        public bool TryGetByRef(IActorRef actor, [NotNullWhen(true)] out ChildRestartStats? childRestartStats)
         {
             if (InternalChildren.TryGetValue(actor.Path.Name, out var stats))
             {
                 //Since the actor exists, ChildRestartStats is the only valid ChildStats.
-                var crStats = stats as ChildRestartStats;
-                if (crStats != null && actor.Equals(crStats.Child))
+                if (stats is ChildRestartStats crStats && actor.Equals(crStats.Child))
                 {
                     childRestartStats = crStats;
                     return true;
@@ -171,6 +172,7 @@ namespace Akka.Actor.Internal
             childRestartStats = null;
             return false;
         }
+        #nullable restore
 
         /// <summary>
         /// TBD
@@ -188,19 +190,18 @@ namespace Akka.Actor.Internal
         /// <param name="sb">TBD</param>
         /// <param name="kvp">TBD</param>
         /// <param name="index">TBD</param>
-        protected void ChildStatsAppender(StringBuilder sb, KeyValuePair<string, IChildStats> kvp, int index)
+        protected static void ChildStatsAppender(StringBuilder sb, KeyValuePair<string, IChildStats> kvp, int index)
         {
             sb.Append('<');
             var childStats = kvp.Value;
-            var childRestartStats = childStats as ChildRestartStats;
-            if (childRestartStats != null)
+            if (childStats is ChildRestartStats childRestartStats)
             {
                 sb.Append(childRestartStats.Child.Path.ToStringWithUid()).Append(':');
                 sb.Append(childRestartStats.MaxNrOfRetriesCount).Append(" retries>");
             }
             else
             {
-                sb.Append(kvp.Key).Append(":").Append(childStats).Append('>');
+                sb.Append(kvp.Key).Append(':').Append(childStats).Append('>');
             }
         }
     }

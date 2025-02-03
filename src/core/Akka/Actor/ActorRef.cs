@@ -1,7 +1,7 @@
 ﻿//-----------------------------------------------------------------------
 // <copyright file="ActorRef.cs" company="Akka.NET Project">
-//     Copyright (C) 2009-2024 Lightbend Inc. <http://www.lightbend.com>
-//     Copyright (C) 2013-2024 .NET Foundation <https://github.com/akkadotnet/akka.net>
+//     Copyright (C) 2009-2022 Lightbend Inc. <http://www.lightbend.com>
+//     Copyright (C) 2013-2025 .NET Foundation <https://github.com/akkadotnet/akka.net>
 // </copyright>
 //-----------------------------------------------------------------------
 
@@ -226,7 +226,9 @@ namespace Akka.Actor
         /// Use this value as an argument to <see cref="ICanTell.Tell"/> if there is not actor to
         /// reply to (e.g. when sending from non-actor code).
         /// </summary>
-        public static readonly IActorRef NoSender = null;
+        #nullable enable
+        public static readonly IActorRef? NoSender = null;
+        #nullable restore
     }
 
     /// <summary>
