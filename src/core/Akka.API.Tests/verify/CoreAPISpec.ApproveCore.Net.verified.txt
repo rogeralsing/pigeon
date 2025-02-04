@@ -1262,6 +1262,15 @@ namespace Akka.Actor
         public Akka.Actor.IActorRef Watch(Akka.Actor.IActorRef subject) { }
         public Akka.Actor.IActorRef WatchWith(Akka.Actor.IActorRef subject, object message) { }
     }
+    public sealed class IntentionalActorRestartException : Akka.Actor.AkkaException
+    {
+        public IntentionalActorRestartException() { }
+    }
+    public sealed class IntentionalRestart : Akka.Actor.IAutoReceivedMessage
+    {
+        public static Akka.Actor.IntentionalRestart Instance { get; }
+        public override string ToString() { }
+    }
     [Akka.Annotations.InternalApiAttribute()]
     public abstract class InternalActorRefBase : Akka.Actor.ActorRefBase, Akka.Actor.IActorRef, Akka.Actor.IActorRefScope, Akka.Actor.ICanTell, Akka.Actor.IInternalActorRef, Akka.Util.ISurrogated, System.IComparable, System.IComparable<Akka.Actor.IActorRef>, System.IEquatable<Akka.Actor.IActorRef>
     {
