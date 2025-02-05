@@ -41,7 +41,7 @@ namespace Akka.IO
                 Memory = memory;
                 RunningIndex = runningIndex;
             }
-            
+
             /// <remarks>
             /// This is here because <see cref="ReadOnlySequenceSegment{T}"/>
             /// has predefined properties with Protected Setters.
@@ -49,28 +49,19 @@ namespace Akka.IO
             public static ReadOnlySequence<byte> CreateSequence(ByteString bs)
             {
                 var bArr = bs._buffers;
-                var first = new ByteStringReadOnlySequenceSegment(bArr[0],0);
-                ByteBuffer item = default;
+                var first = new ByteStringReadOnlySequenceSegment(bArr[0], 0);
                 ByteStringReadOnlySequenceSegment last = first;
-                if (bArr.Length == 2)
+                var prior = first;
+                for (int i = 1; i < bArr.Length; i++)
                 {
-                    item = bArr[1];
-                    last = new ByteStringReadOnlySequenceSegment(item, bs.Count-item.Count);
-                    first.Next = last;
+                    var item = bArr[i];
+                    var curr = new ByteStringReadOnlySequenceSegment(item, prior.RunningIndex + prior.Memory.Length);
+                    prior.Next = curr;
+                    prior = curr;
                 }
-                else
-                {
-                    var prior = first;
-                    for (int i = 1; i < bArr.Length; i++)
-                    {
-                        item = bArr[i];
-                        var curr = new ByteStringReadOnlySequenceSegment(item, prior.RunningIndex+prior.Memory.Length);
-                        prior.Next = curr;
-                        prior = curr;
-                    }
-                    last = prior;
-                }
-                return new ReadOnlySequence<byte>(first,0,last,last.Memory.Length);
+
+                last = prior;
+                return new ReadOnlySequence<byte>(first, 0, last, last.Memory.Length);
             }
         }
         
