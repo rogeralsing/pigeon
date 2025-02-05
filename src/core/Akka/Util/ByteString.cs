@@ -50,7 +50,6 @@ namespace Akka.IO
             {
                 var bArr = bs._buffers;
                 var first = new ByteStringReadOnlySequenceSegment(bArr[0], 0);
-                ByteStringReadOnlySequenceSegment last = first;
                 var prior = first;
                 for (int i = 1; i < bArr.Length; i++)
                 {
@@ -60,8 +59,7 @@ namespace Akka.IO
                     prior = curr;
                 }
 
-                last = prior;
-                return new ReadOnlySequence<byte>(first, 0, last, last.Memory.Length);
+                return new ReadOnlySequence<byte>(first, 0, prior, prior.Memory.Length);
             }
         }
         
@@ -283,7 +281,7 @@ namespace Akka.IO
 
         private readonly int _count;
         private readonly ByteBuffer[] _buffers;
-        
+
         private ByteString(ByteBuffer[] buffers, int count)
         {
             _buffers = buffers;
